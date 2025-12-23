@@ -8,8 +8,10 @@ process.on('uncaughtException', (err) => {
 
 connectDB();
 
-app.listen(config.port, config.host, () => {
-  console.log(`[ ready ] http://${config.host}:${config.port}`);
+const PORT = config.port || 3000;
+
+app.listen(PORT, () => {
+  console.log(`[ ready ] Server running on port ${PORT}`);
 });
 
 //Unhandled promise rejection is handled here
