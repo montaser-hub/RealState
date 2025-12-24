@@ -18,7 +18,7 @@ export const deleteOne = async (id) => {
   return Property.findByIdAndDelete(id);
 };
 
-export const findAll = async () => {
+export const findAll = () => {
   return Property.find()
     .populate('owner', 'firstName lastName fullName')
     .populate( 'broker', 'firstName lastName fullName' );

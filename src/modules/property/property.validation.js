@@ -14,10 +14,8 @@ export const createPropertySchema = Joi.object({
   referenceId: Joi.string().required().messages({
     'any.required': 'Reference ID is required.'
   }),
-  owner: Joi.objectId().optional().messages({
-    'any.required': 'Owner is required.'
-  }),
-  broker: Joi.objectId().optional(),
+  owner: Joi.objectId().optional().allow('', null),
+  broker: Joi.objectId().optional().allow('', null),
   category: Joi.string()
     .valid('apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'tower', 'other')
     .required()
@@ -26,7 +24,7 @@ export const createPropertySchema = Joi.object({
       'any.only': 'Invalid category.'
     }),
   otherCategory: Joi.string().optional().allow('', null),
-  parentProperty: Joi.objectId().optional(),
+  parentProperty: Joi.objectId().optional().allow('', null),
   listingType: Joi.string()
     .valid('rent', 'sale')
     .required()
