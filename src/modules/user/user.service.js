@@ -1,4 +1,4 @@
-import * as userRepo from "../user/user.repository.js"
+import * as userRepo from "./user.repository.js"
 import * as authService from "../auth/Auth.service.js"
 import AppError from "../../utils/appError.js"
 import { getAllDocuments } from "../../utils/queryUtil.js"
@@ -44,7 +44,7 @@ export const getUser = async ( id ) => {
 }
 
 export const getUsers = async ( queryParams ) => {
-  const searchableFields = ['firstName', 'lastName', 'role', 'email', 'nickname', 'status', 'contactNumber', 'AlternativePhone'];
+  const searchableFields = ['firstName', 'lastName', 'role', 'email', 'nickname', 'status', 'contactNumber', 'AlternativePhone', 'dateOfBirth'];
   return await getAllDocuments( userRepo, queryParams, searchableFields);
 }
 

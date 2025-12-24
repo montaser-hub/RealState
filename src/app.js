@@ -1,5 +1,6 @@
 import express from 'express';
 import userRouter from './modules/user/user.routes.js';
+import propertyRouter from './modules/property/property.routes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './utils/globalErrorHandler.js';
 import cors from 'cors';
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 
 // ROUTES
 app.use( '/api/v1/users', userRouter);
+app.use( '/api/v1/properties', propertyRouter );
 
 
 app.all('*', (req, res, next) => {

@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
   },
+  dateOfBirth: {
+    type: Date
+  },
   photo: {
     type: String,
     default: null,
