@@ -1,5 +1,7 @@
-const propertyFeatureSchema = new mongoose.Schema({
-  property: {
+import mongoose from 'mongoose';
+
+const propertyFeatureSchema = new mongoose.Schema( {
+  propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
     required: true,
@@ -23,8 +25,8 @@ const propertyFeatureSchema = new mongoose.Schema({
     totalFloors: Number,
     apartmentsPerFloor: Number
   },
-  commercialFeatures: mongoose.Schema.Types.Mixed,
+  otherFeatures: mongoose.Schema.Types.Mixed,
 }, { timestamps:true });
 
 propertyFeatureSchema.index({ property:1 });
-export default mongoose.model('PropertyFeature', propertyFeatureSchema);
+export default mongoose.model('Feature', propertyFeatureSchema);

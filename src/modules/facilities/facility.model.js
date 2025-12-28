@@ -1,5 +1,7 @@
-const propertyFacilitySchema = new mongoose.Schema({
-  property: {
+import mongoose from 'mongoose';
+
+const propertyFacilitySchema = new mongoose.Schema( {
+  propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
     required: true,
@@ -22,5 +24,5 @@ const propertyFacilitySchema = new mongoose.Schema({
     timestamps: true
 });
 
-propertyFacilitySchema.index({ property:1 });
-export default mongoose.model('PropertyFacility', propertyFacilitySchema);
+propertyFacilitySchema.index({ propertyId:1 });
+export default mongoose.model('Facility', propertyFacilitySchema);
