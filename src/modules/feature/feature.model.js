@@ -28,5 +28,5 @@ const propertyFeatureSchema = new mongoose.Schema( {
   otherFeatures: mongoose.Schema.Types.Mixed,
 }, { timestamps:true });
 
-propertyFeatureSchema.index({ property:1 });
+propertyFeatureSchema.index({ propertyId:1 });
 export default mongoose.model('Feature', propertyFeatureSchema);
