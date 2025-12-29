@@ -4,7 +4,7 @@ import { getAllDocuments } from "../../utils/queryUtil.js"
 
 export const createProperty = async (data) => {
   // Check for referenceId uniqueness or other business rules
-  const existing = await propertyRepo.findAll({ referenceId: data.referenceId });
+  const existing = await propertyRepo.findOne({ referenceId: data.referenceId });
   if (existing.length > 0) throw new AppError('Property referenceId already exists', 400);
 
   return await propertyRepo.create(data);
