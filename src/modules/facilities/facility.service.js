@@ -4,8 +4,8 @@ import { getAllDocuments } from "../../utils/queryUtil.js"
 
 export const createFacility = async (data) => {
   // Check for propertyId uniqueness or other business rules
-  const existing = await facilityRepo.findAll({ propertyId: data.propertyId });
-  if (existing.length > 0) throw new AppError('Facility propertyId already exists', 400);
+  const existing = await facilityRepo.findOne({ propertyId: data.propertyId });
+  if (existing) throw new AppError('Facility with this propertyId already exists', 400);
 
   return await facilityRepo.create(data);
 };

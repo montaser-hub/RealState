@@ -20,6 +20,10 @@ export const findAll = () => {
   return Feature.find();
 };
 
+export const findOne = (filter) => {
+  return Feature.findOne(filter)
+};
+
 export const countAll = () => Feature.countDocuments();
 
 export const countFiltered = (filter) => Feature.countDocuments(filter);

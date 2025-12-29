@@ -20,6 +20,10 @@ export const findAll = () => {
   return Facility.find();
 };
 
+export const findOne = (filter) => {
+  return Facility.findOne( filter );
+};
+
 export const countAll = () => Facility.countDocuments();
 
 export const countFiltered = (filter) => Facility.countDocuments(filter);

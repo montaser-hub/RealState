@@ -3,9 +3,9 @@ import AppError from "../../utils/appError.js"
 import { getAllDocuments } from "../../utils/queryUtil.js"
 
 export const createFeature = async (data) => {
-  // Check for referenceId uniqueness or other business rules
-  const existing = await featureRepo.findAll({ referenceId: data.referenceId });
-  if (existing.length > 0) throw new AppError('Feature referenceId already exists', 400);
+  // Check for propertyId uniqueness or other business rules
+  const existing = await featureRepo.findOne({ propertyId: data.propertyId });
+  if (existing) throw new AppError('Feature with this propertyId already exists', 400);
 
   return await featureRepo.create(data);
 };
