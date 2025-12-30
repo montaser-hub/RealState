@@ -17,12 +17,13 @@ export const login = catchAsync( async ( req, res, next ) => {
     // secure: req.secure || req.headers['x-forwarded-proto'] === 'https', // only set secure cookie if the request is HTTPS
     httpOnly: true, // recive the cookie and store it, send it automatically in each request
     //sameSite: 'none',
-    partitioned: true,
+    partitioned: false,
+    path: '/'
   };
   if (config.nodeEnv === 'production') cookieOptions.secure = true;
-
+console.log("cookies",cookieOptions)
   res.cookie('jwt', token, cookieOptions);
-
+console.log("token",token)
   res.status(201).json({ message: 'Your login was successfully', token, data: user });
 });
 
