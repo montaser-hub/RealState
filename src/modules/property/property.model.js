@@ -22,7 +22,7 @@ const propertySchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'tower', 'other'],
+    enum: ['apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'tower','penthouse', 'other'],
     required: true,
   },
   otherCategory: String,
@@ -118,7 +118,7 @@ const propertySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['available', 'pending', 'archived', 'sold', 'banned'],
+    enum: ['available', 'pending', 'archived', 'sold', 'rented', 'banned'],
     default: 'available',
   },
 }, {

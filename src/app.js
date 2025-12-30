@@ -3,6 +3,7 @@ import userRouter from './modules/user/user.routes.js';
 import propertyRouter from './modules/property/property.routes.js';
 import featureRouter from './modules/feature/feature.routes.js';
 import facilityRouter from './modules/facilities/facility.routes.js';
+import contractRouter from './modules/contract/contract.routes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './utils/globalErrorHandler.js';
 import cors from 'cors';
@@ -40,6 +41,7 @@ app.use( '/api/v1/users', userRouter);
 app.use( '/api/v1/properties', propertyRouter );
 app.use( '/api/v1/features', featureRouter );
 app.use( '/api/v1/facilities', facilityRouter );
+app.use( '/api/v1/contracts', contractRouter );
 
 
 app.all('*', (req, res, next) => {
