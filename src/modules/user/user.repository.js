@@ -45,6 +45,37 @@ export const findByToken = async (hashedToken) => {
   })
 }
 
+export const findByEmail = async (email) => {
+  return await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+}
+
+export const findByNickname = async (nickname) => {
+  return await User.findOne({ nickname: new RegExp(`^${nickname}$`, 'i') });
+}
+
+export const findByIdentifier = async (identifier) => {
+  // Check if identifier is a valid MongoDB ObjectId (24 hex characters)
+  const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+  
+  if (objectIdPattern.test(identifier)) {
+    // Try as user ID first
+    const userById = await User.findById(identifier);
+    if (userById) return userById;
+  }
+  
+  // Check if it's an email (contains @)
+  if (identifier.includes('@')) {
+    const userByEmail = await User.findOne({ email: new RegExp(`^${identifier}$`, 'i') });
+    if (userByEmail) return userByEmail;
+  }
+  
+  // Otherwise, treat as nickname
+  const userByNickname = await User.findOne({ nickname: new RegExp(`^${identifier}$`, 'i') });
+  if (userByNickname) return userByNickname;
+  
+  return null;
+}
+
 export const countAll = () => User.countDocuments();
 
 export const countFiltered = (filter) => User.countDocuments(filter);

@@ -49,6 +49,16 @@ export const addUser = catchAsync( async ( req, res, next ) => {
   const data = { ...req.body }
 
   const userData = await userService.addUser(data)
+  
+  // Send welcome email (don't fail if email fails)
+  try {
+    const { sendWelcomeEmail } = await import('../../utils/emailService.js');
+    await sendWelcomeEmail(userData, data.password);
+  } catch (error) {
+    console.error('Failed to send welcome email:', error.message);
+    // Continue even if email fails
+  }
+  
   res.status(200).json({ message: "User added successfully", data: userData });
 });
 

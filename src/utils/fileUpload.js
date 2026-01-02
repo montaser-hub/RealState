@@ -1,15 +1,8 @@
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
-
-// Setup S3 client
-// const s3 = new S3Client({
-//   region: process.env.AWS_REGION || 'eu-north-1',
-//   credentials: {
-//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//   },
-// });
+import { uploadImageToB2 } from "./b2Upload.js";
+import { config } from "../configs/env.js";
 
 export const resizeAndSaveImage = async (file, options = {}) => {
   const {
@@ -24,29 +17,20 @@ export const resizeAndSaveImage = async (file, options = {}) => {
 
   const filename = `${prefix}-${Date.now()}.jpeg`;
 
-
   // Process and save image
   const buffer = await sharp(file.buffer)
     .resize(width, height)
     .toFormat("jpeg")
     .jpeg({ quality })
-    .toBuffer()
+    .toBuffer();
 
-  const uploadTarget = process.env.UPLOAD_TARGET || process.env.NODE_ENV;
-  if (uploadTarget === "s3" || uploadTarget === "production") {
-    // --- Upload to S3 (production) ---
-    const params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `${folder}/${filename}`,
-      Body: buffer,
-      ContentType: "image/jpeg",
-    };
-
-    // await s3.send(new PutObjectCommand(params));
-
-    return `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+  const uploadTarget = process.env.UPLOAD_TARGET || config.nodeEnv;
+  
+  if (uploadTarget === "b2" || uploadTarget === "production") {
+    // Upload to Backblaze B2
+    return await uploadImageToB2(buffer, folder, filename);
   } else {
-    // --- Save locally (development) ---
+    // Save locally (development)
     const localFolder = path.join("assets", "images", folder);
     fs.mkdirSync(localFolder, { recursive: true });
 

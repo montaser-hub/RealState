@@ -53,11 +53,12 @@ export const isAuth = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    next( new AppError('You are not logged in', 401));
+    return next(new AppError('You are not logged in', 401));
   }
 
-  //2) Verification token
+  //2) Verification token (errors are handled by catchAsync and verifyToken)
   const currentUser = await authService.verifyToken(token);
+  
   //Grant Access to protected route
   req.user = currentUser;
   res.locals.user = currentUser;
@@ -71,10 +72,11 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   const baseUrl =
     config.nodeEnv === "production"
       ? config.productionUrl
-      : `http://${config.host}:${config.port}`;
-   const resetUrl = `${baseUrl}/api/v1/users/resetPassword/${resetToken}`;
+      : `http://localhost:3001`;
+   const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
   try {
-    await new Email( user, resetUrl ).sendPasswordReset();
+    const { sendPasswordResetEmail } = await import('../../utils/emailService.js');
+    await sendPasswordResetEmail(user, resetUrl);
 
     res.status( 200 ).json( {
       status: 'success',
@@ -84,7 +86,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     console.log( err );
     // cleanup if email sending failed
     await authService.cleanupResetToken(user);
-    next( new AppError( 'Error sending email. Try again later', 500 ));
+    return next( new AppError( 'Error sending email. Try again later', 500 ));
   }
 });
 

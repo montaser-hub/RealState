@@ -7,8 +7,9 @@ export const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
     });
     console.log('DB Connected');
+    return true;
   } catch (err) {
     console.error('DB connection error:', err.message);
-    process.exit(1);
+    throw err;
   }
 };

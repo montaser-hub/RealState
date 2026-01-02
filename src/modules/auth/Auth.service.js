@@ -26,19 +26,49 @@ export const createTokenPayload = (user) => {
 };
 
 export const verifyToken = async( token ) => {
-  //2) verification token
-  const decoded = await promisify( jwt.verify )( token, config?.jwtSecret );
-  //3) check if user still exists
-  const currentUser = await userService.getUser(decoded?.id);
-  if (!currentUser) {
-    throw new AppError('User no longer exists', 401);
+  if (!token) {
+    throw new AppError('Token is required', 401);
   }
 
-  //4) check if user changed password after the token was issued
-  if (currentUser.changedPasswordAfter(decoded?.iat)) {
-    throw new AppError('User recently changed password! Please login again', 401);
+  if (!config?.jwtSecret) {
+    throw new AppError('JWT secret is not configured', 500);
   }
-  return currentUser
+
+  try {
+    //2) verification token
+    const decoded = await promisify( jwt.verify )( token, config.jwtSecret );
+    
+    if (!decoded || !decoded.id) {
+      throw new AppError('Invalid token payload', 401);
+    }
+
+    //3) check if user still exists
+    const currentUser = await userService.getUser(decoded.id);
+    if (!currentUser) {
+      throw new AppError('User no longer exists', 401);
+    }
+
+    //4) check if user changed password after the token was issued
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      throw new AppError('User recently changed password! Please login again', 401);
+    }
+    
+    return currentUser;
+  } catch (error) {
+    // Re-throw AppError as-is
+    if (error instanceof AppError) {
+      throw error;
+    }
+    // Handle JWT-specific errors
+    if (error.name === 'JsonWebTokenError') {
+      throw new AppError('Invalid token. Please log in again', 401);
+    }
+    if (error.name === 'TokenExpiredError') {
+      throw new AppError('Your token has expired. Please log in again', 401);
+    }
+    // Handle other errors
+    throw new AppError('Token verification failed', 401);
+  }
 };
 
 export const forgotPassword = async ( email ) => {

@@ -47,8 +47,45 @@ const contractSchema = new mongoose.Schema( {
     default: 'USD'
   },
   notes: String,
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
 contractSchema.index({ propertyId: 1 });
+
+// Static method to update expired contracts
+contractSchema.statics.updateExpiredContracts = async function() {
+  const now = new Date();
+  const result = await this.updateMany(
+    {
+      endDate: { $lt: now },
+      status: { $nin: ['expired', 'terminated', 'cancelled'] }
+    },
+    {
+      $set: { status: 'expired' }
+    }
+  );
+  return result;
+};
+
+// Pre-save hook: Automatically set status to expired if endDate has passed
+contractSchema.pre('save', function(next) {
+  if (this.endDate && this.endDate < new Date()) {
+    // Only auto-expire if status is not already expired, terminated, or cancelled
+    if (!['expired', 'terminated', 'cancelled'].includes(this.status)) {
+      this.status = 'expired';
+    }
+  }
+  next();
+});
+
+// Pre-find hook: Automatically update expired contracts before any find query
+contractSchema.pre(/^find/, async function(next) {
+  // Update expired contracts before fetching
+  await this.model.updateExpiredContracts();
+  next();
+});
 
 export default mongoose.model('Contract', contractSchema);

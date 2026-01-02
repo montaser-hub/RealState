@@ -3,6 +3,7 @@ import * as userController from './user.controller.js';
 import * as authController from '../auth/Auth.controller.js';
 import validation from '../../middlewares/validation.js';
 import * as userSchema from './user.validation.js';
+import { authorize } from '../../middlewares/authorize.js';
 
 const router = express.Router();
 
@@ -23,27 +24,28 @@ router.patch(
   userController.resizeUserPhoto,
   userController.updateMyProfile
 );
-// Used to protected routes and accessed only by admin, manager role
 
 router
   .route('/')
-  .get(userController.getUsers)
+  .get(authorize('users', 'read'), userController.getUsers)
   .post(
+    authorize('users', 'create'),
     validation(userSchema.createUserSchema),
     userController.addUser
   );
 
 router
   .route('/:id')
-  .get(userController.getUser)
+  .get(authorize('users', 'read'), userController.getUser)
   .patch(
+    authorize('users', 'update'),
     validation(userSchema.updateUserSchema),
     userController.uploadUserPhoto,
     userController.resizeUserPhoto,
     userController.updateUser
   )
-  .delete(userController.deleteUser);
+  .delete(authorize('users', 'delete'), userController.deleteUser);
 
-router.delete('/softDelete/:id', userController.softDeleteUser);
-router.delete( '/banned/:id', userController.bannedUser );
+router.delete('/softDelete/:id', authorize('users', 'delete'), userController.softDeleteUser);
+router.delete('/banned/:id', authorize('users', 'update'), userController.bannedUser);
 export default router;

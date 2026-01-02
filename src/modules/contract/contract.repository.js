@@ -1,15 +1,40 @@
 import Contract from './contract.model.js';
 
 export const create = async (data) => {
-  return await Contract.create(data);
+  const contract = await Contract.create(data);
+  return await Contract.findById(contract._id)
+    .populate({
+      path: 'propertyId',
+      select: 'title referenceId category listingType',
+      populate: {
+        path: 'owner',
+        select: 'firstName lastName fullName email contactNumber AlternativePhone'
+      }
+    });
 };
 
 export const findById = async (id) => {
   return await Contract.findById(id)
+    .populate({
+      path: 'propertyId',
+      select: 'title referenceId category listingType',
+      populate: {
+        path: 'owner',
+        select: 'firstName lastName fullName email contactNumber AlternativePhone'
+      }
+    });
 };
 
 export const update = async (id, data) => {
-  return await Contract.findByIdAndUpdate(id, data, { new: true });
+  return await Contract.findByIdAndUpdate(id, data, { new: true })
+    .populate({
+      path: 'propertyId',
+      select: 'title referenceId category listingType',
+      populate: {
+        path: 'owner',
+        select: 'firstName lastName fullName email contactNumber AlternativePhone'
+      }
+    });
 };
 
 export const deleteOne = async (id) => {
@@ -21,7 +46,15 @@ export const findOne = (filter) => {
 };
 
 export const findAll = () => {
-  return Contract.find();
+  return Contract.find()
+    .populate({
+      path: 'propertyId',
+      select: 'title referenceId category listingType',
+      populate: {
+        path: 'owner',
+        select: 'firstName lastName fullName email contactNumber AlternativePhone'
+      }
+    });
 };
 
 export const countAll = () => Contract.countDocuments();
