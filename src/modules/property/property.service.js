@@ -3,6 +3,7 @@ import AppError from "../../utils/appError.js"
 import { getAllDocuments } from "../../utils/queryUtil.js"
 import Contract from "../contract/contract.model.js"
 import mongoose from "mongoose"
+import Owner from "../owner/owner.model.js"
 
 export const createProperty = async (data) => {
   // Check for referenceId uniqueness or other business rules
@@ -20,6 +21,37 @@ export const getProperty = async (id) => {
 
 export const getProperties = async (queryParams) => {
   const searchableFields = ['title', 'category', 'status', 'city', 'state', 'country', 'listingType'];
+  
+  // Handle owner name search
+  let ownerFilter = null;
+  if (queryParams.ownerName) {
+    const ownerName = queryParams.ownerName.trim();
+    const nameParts = ownerName.split(/\s+/).filter(Boolean);
+    
+    if (nameParts.length > 0) {
+      const ownerQuery = {
+        $or: nameParts.map(part => ({
+          $or: [
+            { firstName: new RegExp(part, 'i') },
+            { lastName: new RegExp(part, 'i') },
+            { email: new RegExp(part, 'i') }
+          ]
+        }))
+      };
+      
+      const owners = await Owner.find(ownerQuery).select('_id');
+      const ownerIds = owners.map(o => o._id);
+      
+      if (ownerIds.length === 0) {
+        // No owners found with this name
+        return { data: [], total: 0, totalFiltered: 0 };
+      }
+      
+      // Store filter to apply after getAllDocuments
+      ownerFilter = { realOwner: { $in: ownerIds } };
+      delete queryParams.ownerName;
+    }
+  }
   
   // Handle expired contract filter
   let expiredPropertyIds = null;
@@ -46,6 +78,15 @@ export const getProperties = async (queryParams) => {
   
   // Get base result
   const result = await getAllDocuments(propertyRepo, queryParams, searchableFields);
+  
+  // Apply owner filter if needed (filter after population)
+  if (ownerFilter) {
+    const ownerIdStrings = ownerFilter.realOwner.$in.map(id => id.toString());
+    result.data = result.data.filter(property => 
+      property.realOwner && ownerIdStrings.includes(property.realOwner._id?.toString() || property.realOwner.toString())
+    );
+    result.totalFiltered = result.data.length;
+  }
   
   // Filter by expired contracts if needed
   if (expiredPropertyIds && expiredPropertyIds.length > 0) {

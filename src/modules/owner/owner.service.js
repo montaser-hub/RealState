@@ -2,6 +2,7 @@ import * as ownerRepo from './owner.repository.js';
 import AppError from '../../utils/appError.js';
 import { getAllDocuments } from '../../utils/queryUtil.js';
 import { convertToCSV, parseCSV } from '../../utils/csvUtil.js';
+import Property from '../property/property.model.js';
 
 export const createOwner = async (data) => {
   // Check for email uniqueness if provided
@@ -18,7 +19,20 @@ export const createOwner = async (data) => {
 export const getOwner = async (id) => {
   const owner = await ownerRepo.findById(id);
   if (!owner) throw new AppError('Owner not found', 404);
-  return owner;
+  
+  // Count properties owned by this owner
+  const propertyCount = await Property.countDocuments({ realOwner: id });
+  const apartmentCount = await Property.countDocuments({ 
+    realOwner: id, 
+    category: 'apartment' 
+  });
+  
+  // Convert to plain object and add counts
+  const ownerObj = owner.toObject ? owner.toObject() : owner;
+  ownerObj.propertyCount = propertyCount;
+  ownerObj.apartmentCount = apartmentCount;
+  
+  return ownerObj;
 };
 
 export const getOwners = async (queryParams) => {
