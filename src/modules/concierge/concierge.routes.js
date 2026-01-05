@@ -23,6 +23,20 @@ router
   );
 
 router
+  .route('/export')
+  .get(authorize('concierges', 'read'), conciergeController.exportConcierges);
+
+const uploadCSV = uploadSingle('file', 'file');
+
+router
+  .route('/import')
+  .post(
+    authorize('concierges', 'create'),
+    uploadCSV,
+    conciergeController.importConcierges
+  );
+
+router
   .route('/:id')
   .get(authorize('concierges', 'read'), conciergeController.getConcierge)
   .patch(
@@ -33,20 +47,6 @@ router
     conciergeController.updateConcierge
   )
   .delete(authorize('concierges', 'delete'), conciergeController.deleteConcierge);
-
-const uploadCSV = uploadSingle('file', 'file');
-
-router
-  .route('/export')
-  .get(authorize('concierges', 'read'), conciergeController.exportConcierges);
-
-router
-  .route('/import')
-  .post(
-    authorize('concierges', 'create'),
-    uploadCSV,
-    conciergeController.importConcierges
-  );
 
 export default router;
 

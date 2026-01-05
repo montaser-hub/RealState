@@ -22,18 +22,6 @@ router
     clientController.createClient
   );
 
-router
-  .route('/:id')
-  .get(authorize('clients', 'read'), clientController.getClient)
-  .patch(
-    authorize('clients', 'update'),
-    clientController.uploadClientPhoto,
-    validation(clientSchema.updateClientSchema),
-    clientController.resizeClientPhoto,
-    clientController.updateClient
-  )
-  .delete(authorize('clients', 'delete'), clientController.deleteClient);
-
 const uploadCSV = uploadSingle('file', 'file');
 
 router
@@ -47,6 +35,18 @@ router
     uploadCSV,
     clientController.importClients
   );
+
+router
+  .route('/:id')
+  .get(authorize('clients', 'read'), clientController.getClient)
+  .patch(
+    authorize('clients', 'update'),
+    clientController.uploadClientPhoto,
+    validation(clientSchema.updateClientSchema),
+    clientController.resizeClientPhoto,
+    clientController.updateClient
+  )
+  .delete(authorize('clients', 'delete'), clientController.deleteClient);
 
 export default router;
 

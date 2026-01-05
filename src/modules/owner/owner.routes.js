@@ -23,18 +23,6 @@ router
   );
 
 router
-  .route('/:id')
-  .get(authorize('owners', 'read'), ownerController.getOwner)
-  .patch(
-    authorize('owners', 'update'),
-    ownerController.uploadOwnerPhoto,
-    validation(ownerSchema.updateOwnerSchema),
-    ownerController.resizeOwnerPhoto,
-    ownerController.updateOwner
-  )
-  .delete(authorize('owners', 'delete'), ownerController.deleteOwner);
-
-router
   .route('/export')
   .get(authorize('owners', 'read'), ownerController.exportOwners);
 
@@ -47,6 +35,18 @@ router
     uploadCSV,
     ownerController.importOwners
   );
+
+router
+  .route('/:id')
+  .get(authorize('owners', 'read'), ownerController.getOwner)
+  .patch(
+    authorize('owners', 'update'),
+    ownerController.uploadOwnerPhoto,
+    validation(ownerSchema.updateOwnerSchema),
+    ownerController.resizeOwnerPhoto,
+    ownerController.updateOwner
+  )
+  .delete(authorize('owners', 'delete'), ownerController.deleteOwner);
 
 export default router;
 
