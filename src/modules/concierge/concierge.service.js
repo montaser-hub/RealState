@@ -52,8 +52,15 @@ export const deleteConcierge = async (id) => {
 export const exportConcierges = async (queryParams) => {
   const { data } = await getConcierges({ ...queryParams, all: 'true' });
   
+  // Sort alphabetically by full name (firstName + lastName) A to Z
+  const sortedData = [...data].sort((a, b) => {
+    const nameA = `${(a.firstName || '')} ${(a.lastName || '')}`.trim().toLowerCase();
+    const nameB = `${(b.firstName || '')} ${(b.lastName || '')}`.trim().toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+  
   const headers = ['firstName', 'lastName', 'email', 'contactNumber', 'alternativePhone', 'dateOfBirth', 'status', 'notes'];
-  const csvData = data.map(concierge => ({
+  const csvData = sortedData.map(concierge => ({
     firstName: concierge.firstName || '',
     lastName: concierge.lastName || '',
     email: concierge.email || '',

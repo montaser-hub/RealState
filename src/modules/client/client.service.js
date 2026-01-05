@@ -52,8 +52,15 @@ export const deleteClient = async (id) => {
 export const exportClients = async (queryParams) => {
   const { data } = await getClients({ ...queryParams, all: 'true' });
   
+  // Sort alphabetically by full name (firstName + lastName) A to Z
+  const sortedData = [...data].sort((a, b) => {
+    const nameA = `${(a.firstName || '')} ${(a.lastName || '')}`.trim().toLowerCase();
+    const nameB = `${(b.firstName || '')} ${(b.lastName || '')}`.trim().toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+  
   const headers = ['firstName', 'lastName', 'email', 'contactNumber', 'alternativePhone', 'dateOfBirth', 'status', 'notes'];
-  const csvData = data.map(client => ({
+  const csvData = sortedData.map(client => ({
     firstName: client.firstName || '',
     lastName: client.lastName || '',
     email: client.email || '',

@@ -66,8 +66,15 @@ export const deleteOwner = async (id) => {
 export const exportOwners = async (queryParams) => {
   const { data } = await getOwners({ ...queryParams, all: 'true' });
   
+  // Sort alphabetically by full name (firstName + lastName) A to Z
+  const sortedData = [...data].sort((a, b) => {
+    const nameA = `${(a.firstName || '')} ${(a.lastName || '')}`.trim().toLowerCase();
+    const nameB = `${(b.firstName || '')} ${(b.lastName || '')}`.trim().toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+  
   const headers = ['firstName', 'lastName', 'email', 'contactNumber', 'alternativePhone', 'dateOfBirth', 'status', 'notes'];
-  const csvData = data.map(owner => ({
+  const csvData = sortedData.map(owner => ({
     firstName: owner.firstName || '',
     lastName: owner.lastName || '',
     email: owner.email || '',
