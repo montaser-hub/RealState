@@ -90,7 +90,8 @@ export const cleanupResetToken = async (user) => {
 };
 
 export const resetPassword = async ( token, data ) => {
-  if(data.password !== data.confirmPassword) {
+  const confirmPassword = data.confirmPassword || data.passwordConfirm;
+  if(data.password !== confirmPassword) {
     throw new AppError('Passwords do not match', 400);
   }
   // 1) Get user based on token

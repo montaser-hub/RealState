@@ -10,6 +10,9 @@ import reminderRouter from './modules/reminder/reminder.routes.js';
 import googleCalendarRouter from './modules/googleCalendar/googleCalendar.routes.js';
 import paymentRouter from './modules/payment/payment.routes.js';
 import emailRouter from './modules/email/email.routes.js';
+import ownerRouter from './modules/owner/owner.routes.js';
+import clientRouter from './modules/client/client.routes.js';
+import conciergeRouter from './modules/concierge/concierge.routes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './utils/globalErrorHandler.js';
 import cors from 'cors';
@@ -54,6 +57,9 @@ app.use( '/api/v1/reminders', reminderRouter );
 app.use( '/api/v1/google', googleCalendarRouter );
 app.use( '/api/v1/payments', paymentRouter );
 app.use( '/api/v1/emails', emailRouter );
+app.use( '/api/v1/owners', ownerRouter );
+app.use( '/api/v1/clients', clientRouter );
+app.use( '/api/v1/concierges', conciergeRouter );
 
 
 app.all('*', (req, res, next) => {

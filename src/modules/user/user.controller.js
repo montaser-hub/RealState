@@ -47,6 +47,9 @@ export const updateMyPassword = catchAsync( async ( req, res, next ) => {
 // Admin, Manager
 export const addUser = catchAsync( async ( req, res, next ) => {
   const data = { ...req.body }
+  if (req.file && req.file.filename) {
+    data.photo = req.file.filename;
+  }
 
   const userData = await userService.addUser(data)
   

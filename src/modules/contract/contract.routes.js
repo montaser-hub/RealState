@@ -16,6 +16,8 @@ router
   .post(
     authorize('contracts', 'create'),
     validation(propertycontractSchema.createContractSchema),
+    contracrtController.uploadContractDocument,
+    contracrtController.resizeContractDocument,
     contracrtController.createContract
   );
 
@@ -25,6 +27,8 @@ router
   .patch(
     authorize('contracts', 'update'),
     validation(propertycontractSchema.updateContractSchema),
+    contracrtController.uploadContractDocument,
+    contracrtController.resizeContractDocument,
     contracrtController.updateContract
   )
   .delete(authorize('contracts', 'delete'), contracrtController.deleteContract);

@@ -18,3 +18,5 @@ export const sendCustomEmailByIdentifierSchema = Joi.object({
   text: Joi.string().optional(),
 });
 
+
+

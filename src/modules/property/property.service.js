@@ -1,6 +1,8 @@
 import * as propertyRepo from "./property.repository.js"
 import AppError from "../../utils/appError.js"
 import { getAllDocuments } from "../../utils/queryUtil.js"
+import Contract from "../contract/contract.model.js"
+import mongoose from "mongoose"
 
 export const createProperty = async (data) => {
   // Check for referenceId uniqueness or other business rules
@@ -18,7 +20,43 @@ export const getProperty = async (id) => {
 
 export const getProperties = async (queryParams) => {
   const searchableFields = ['title', 'category', 'status', 'city', 'state', 'country', 'listingType'];
-  return await getAllDocuments(propertyRepo, queryParams, searchableFields);
+  
+  // Handle expired contract filter
+  let expiredPropertyIds = null;
+  if (queryParams.hasExpiredContract === 'true') {
+    // Find all contracts that are expired
+    const now = new Date();
+    const expiredContracts = await Contract.find({
+      $or: [
+        { status: 'expired' },
+        { endDate: { $lt: now }, status: { $nin: ['terminated', 'cancelled'] } }
+      ]
+    }).select('propertyId');
+    
+    expiredPropertyIds = [...new Set(expiredContracts.map(c => c.propertyId.toString()))];
+    
+    if (expiredPropertyIds.length === 0) {
+      // No properties with expired contracts
+      return { data: [], total: 0, totalFiltered: 0 };
+    }
+    
+    // Remove hasExpiredContract from queryParams to avoid filtering issues
+    delete queryParams.hasExpiredContract;
+  }
+  
+  // Get base result
+  const result = await getAllDocuments(propertyRepo, queryParams, searchableFields);
+  
+  // Filter by expired contracts if needed
+  if (expiredPropertyIds && expiredPropertyIds.length > 0) {
+    const objectIds = expiredPropertyIds.map(id => new mongoose.Types.ObjectId(id));
+    result.data = result.data.filter(property => 
+      objectIds.some(id => id.toString() === property._id.toString())
+    );
+    result.totalFiltered = result.data.length;
+  }
+  
+  return result;
 };
 
 export const updateProperty = async (id, data) => {

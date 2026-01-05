@@ -17,13 +17,6 @@ export const createContractSchema = Joi.object({
       'any.required': 'Property reference is required.',
     }),
 
-  contractType: Joi.string()
-    .valid('owner', 'broker', 'agency')
-    .optional()
-    .messages({
-      'any.only': 'Contract type must be owner, broker, or agency.',
-    }),
-
   startDate: Joi.date()
     .iso()
     .required()
@@ -41,12 +34,37 @@ export const createContractSchema = Joi.object({
       'date.greater': 'End date must be after start date.',
     }),
 
-  documentUrl: Joi.string()
-    .uri()
+  document: Joi.string()
     .optional()
-    .messages({
-      'string.uri': 'Document URL must be a valid URL.',
-    }),
+    .allow('', null),
+
+  realOwner: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  realClient: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  realConcierge: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  ownerName: Joi.string()
+    .optional()
+    .allow('', null),
+
+  ownerPhone: Joi.string()
+    .optional()
+    .allow('', null),
+
+  clientName: Joi.string()
+    .optional()
+    .allow('', null),
+
+  clientPhone: Joi.string()
+    .optional()
+    .allow('', null),
 
   amount: Joi.number()
     .min(0)
@@ -88,10 +106,6 @@ export const updateContractSchema = Joi.object({
 
   propertyId: Joi.objectId().optional(),
 
-  contractType: Joi.string()
-    .valid('owner', 'broker', 'agency')
-    .optional(),
-
   startDate: Joi.date()
     .iso()
     .optional(),
@@ -111,9 +125,37 @@ export const updateContractSchema = Joi.object({
       'any.only': 'Invalid contract status.',
     }),
 
-  documentUrl: Joi.string()
-    .uri()
-    .optional(),
+  document: Joi.string()
+    .optional()
+    .allow('', null),
+
+  realOwner: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  realClient: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  realConcierge: Joi.objectId()
+    .optional()
+    .allow('', null),
+
+  ownerName: Joi.string()
+    .optional()
+    .allow('', null),
+
+  ownerPhone: Joi.string()
+    .optional()
+    .allow('', null),
+
+  clientName: Joi.string()
+    .optional()
+    .allow('', null),
+
+  clientPhone: Joi.string()
+    .optional()
+    .allow('', null),
 
   amount: Joi.number()
     .min(0)

@@ -7,12 +7,15 @@ export const createPaymentSchema = Joi.object({
   paymentDate: Joi.date().default(Date.now),
   apartmentReference: Joi.string().hex().length(24).allow(null),
   assignedType: Joi.string().valid('ASSIGNED', 'MANUAL').default('MANUAL'),
+  realOwner: Joi.string().hex().length(24).allow(null, ''),
+  realClient: Joi.string().hex().length(24).allow(null, ''),
+  realConcierge: Joi.string().hex().length(24).allow(null, ''),
   username: Joi.string().allow(null, ''),
   userEmail: Joi.string().email().allow(null, ''),
   ownerName: Joi.string().allow(null, ''),
   description: Joi.string().max(1000).allow('', null),
   notes: Joi.string().max(2000).allow('', null),
-}).or('username', 'userEmail', 'ownerName');
+}).or('username', 'userEmail', 'ownerName', 'realOwner', 'realClient', 'realConcierge');
 
 export const updatePaymentSchema = Joi.object({
   totalAmount: Joi.number().positive(),
@@ -21,6 +24,9 @@ export const updatePaymentSchema = Joi.object({
   paymentDate: Joi.date(),
   apartmentReference: Joi.string().hex().length(24).allow(null),
   assignedType: Joi.string().valid('ASSIGNED', 'MANUAL'),
+  realOwner: Joi.string().hex().length(24).allow(null, ''),
+  realClient: Joi.string().hex().length(24).allow(null, ''),
+  realConcierge: Joi.string().hex().length(24).allow(null, ''),
   username: Joi.string().allow(null, ''),
   userEmail: Joi.string().email().allow(null, ''),
   ownerName: Joi.string().allow(null, ''),
@@ -28,4 +34,6 @@ export const updatePaymentSchema = Joi.object({
   notes: Joi.string().max(2000).allow('', null),
   status: Joi.string().valid('PAID', 'UNPAID'),
 });
+
+
 

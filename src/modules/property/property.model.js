@@ -20,9 +20,21 @@ const propertySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  realOwner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Owner',
+  },
+  realClient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  },
+  realConcierge: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Concierge',
+  },
   category: {
     type: String,
-    enum: ['apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'tower','penthouse', 'other'],
+    enum: ['apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'penthouse', 'other'],
     required: true,
   },
   otherCategory: String,
@@ -33,7 +45,6 @@ const propertySchema = new mongoose.Schema({
   listingType: {
     type: String,
     enum: ['rent', 'sale'],
-    required: true,
   },
   city: String,
   state: String,
@@ -47,16 +58,16 @@ const propertySchema = new mongoose.Schema({
     type: String,
     enum: ['Point'],
     default: 'Point',
-    required: true,
   },
   coordinates: {
     type: [Number], // [longitude, latitude]
-    required: true,
     validate: {
-      validator: val =>
-        val.length === 2 &&
-        val[0] >= -180 && val[0] <= 180 &&
-        val[1] >= -90 && val[1] <= 90,
+      validator: function(val) {
+        if (!val || val.length === 0) return true; // Allow empty for buildings
+        return val.length === 2 &&
+          val[0] >= -180 && val[0] <= 180 &&
+          val[1] >= -90 && val[1] <= 90;
+      },
       message: 'Invalid longitude/latitude values',
     }
   },
@@ -64,7 +75,6 @@ const propertySchema = new mongoose.Schema({
   size: {
   value: {
     type: Number,
-    required: true,
     min: 0,
   },
   unit: {
@@ -73,6 +83,7 @@ const propertySchema = new mongoose.Schema({
     default: 'sqm',
   },
   },
+  block: String,
   floor: Number,
   pricing: {
   sale: {
@@ -130,10 +141,10 @@ const propertySchema = new mongoose.Schema({
 propertySchema.pre('save', function (next) {
   if (
     this.parentProperty &&
-    ['building', 'tower'].includes(this.category)
+    this.category === 'building'
   ) {
     return next(
-      new Error('Buildings or tower cannot be child units')
+      new Error('Buildings cannot be child units')
     );
   }
   next();
@@ -158,9 +169,9 @@ propertySchema.virtual('media', {
 });
 
 propertySchema.virtual('contracts', {
-  ref: 'PropertyContract',
+  ref: 'Contract',
   localField: '_id',
-  foreignField: 'property',
+  foreignField: 'propertyId',
 });
 
 propertySchema.virtual('features', {
@@ -181,6 +192,10 @@ propertySchema.virtual('facilities', {
 propertySchema.index({ parentProperty: 1 });
 propertySchema.index({ category: 1 });
 propertySchema.index({ location: '2dsphere' });
+propertySchema.index({ realOwner: 1 });
+propertySchema.index({ realClient: 1 });
+propertySchema.index({ realConcierge: 1 });
+propertySchema.index({ block: 1 });
 
 const Property = mongoose.model('Property', propertySchema);
 

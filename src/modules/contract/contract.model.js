@@ -20,18 +20,37 @@ const contractSchema = new mongoose.Schema( {
     type: Date,
     required: true
   },
-  contractType: {
-    type: String,
-    enum: [ 'owner', 'broker', 'agency' ],
-    default: 'owner'
-  },
   status: {
     type: String,
     enum: ['draft', 'active', 'expired', 'terminated', 'renewed', 'cancelled'],
     default: 'draft',
     index: true,
   },
-  documentUrl: {
+  document: {
+    type: String,
+  },
+  realOwner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Owner',
+  },
+  realClient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  },
+  realConcierge: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Concierge',
+  },
+  ownerName: {
+    type: String,
+  },
+  ownerPhone: {
+    type: String,
+  },
+  clientName: {
+    type: String,
+  },
+  clientPhone: {
     type: String,
   },
   amount: {
@@ -53,7 +72,11 @@ const contractSchema = new mongoose.Schema( {
   toObject: { virtuals: true }
 });
 
-contractSchema.index({ propertyId: 1 });
+// Indexes
+contractSchema.index({ propertyId: 1 }, { background: true });
+contractSchema.index({ realOwner: 1 });
+contractSchema.index({ realClient: 1 });
+contractSchema.index({ realConcierge: 1 });
 
 // Static method to update expired contracts
 contractSchema.statics.updateExpiredContracts = async function() {

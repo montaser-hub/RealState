@@ -58,7 +58,11 @@ export const updatePassword = async ( email, data ) => {
   if (!(await user.correctPassword(data.currentPassword, user.password))) {
     throw new AppError('Incorrect current password', 401);
   }
-  // 3) Update password
+  // 3) Check if new password is different from current password
+  if (data.currentPassword === data.newPassword) {
+    throw new AppError('New password must be different from current password', 400);
+  }
+  // 4) Update password
   user.password = data.newPassword;
   await user.save();
 

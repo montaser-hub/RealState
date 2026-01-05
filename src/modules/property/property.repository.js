@@ -37,10 +37,18 @@ export const findById = async (id) => {
   const property = await Property.findById(id)
     .populate('owner', 'firstName lastName fullName')
     .populate('broker', 'firstName lastName fullName')
+    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',
       options: { sort: { order: 1 } }
+    })
+    .populate({
+      path: 'contracts',
+      select: 'contractNumber startDate endDate status amount currency',
+      options: { sort: { endDate: -1 } }
     });
 
   if (!property) return null;
@@ -52,10 +60,18 @@ export const update = async (id, data) => {
   const property = await Property.findByIdAndUpdate(id, data, { new: true })
     .populate('owner', 'firstName lastName fullName')
     .populate('broker', 'firstName lastName fullName')
+    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',
       options: { sort: { order: 1 } }
+    })
+    .populate({
+      path: 'contracts',
+      select: 'contractNumber startDate endDate status amount currency',
+      options: { sort: { endDate: -1 } }
     });
 
   if (!property) return null;
@@ -79,10 +95,18 @@ export const findAll = () => {
   return Property.find()
     .populate('owner', 'firstName lastName fullName')
     .populate('broker', 'firstName lastName fullName')
+    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',
       options: { sort: { order: 1 } }
+    })
+    .populate({
+      path: 'contracts',
+      select: 'contractNumber startDate endDate status amount currency',
+      options: { sort: { endDate: -1 } }
     });
 };
 

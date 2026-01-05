@@ -44,6 +44,18 @@ const paymentSchema = new mongoose.Schema({
     enum: ['ASSIGNED', 'MANUAL'],
     default: 'MANUAL',
   },
+  realOwner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Owner',
+  },
+  realClient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  },
+  realConcierge: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Concierge',
+  },
   // Ownership identifiers (at least one required)
   username: {
     type: String,
@@ -89,8 +101,8 @@ paymentSchema.pre('save', function (next) {
 
 // Pre-save hook: Validate at least one ownership identifier
 paymentSchema.pre('save', function (next) {
-  if (!this.username && !this.userEmail && !this.ownerName) {
-    return next(new Error('At least one ownership identifier (username, userEmail, or ownerName) is required'));
+  if (!this.username && !this.userEmail && !this.ownerName && !this.realOwner && !this.realClient && !this.realConcierge) {
+    return next(new Error('At least one ownership identifier (username, userEmail, ownerName, realOwner, realClient, or realConcierge) is required'));
   }
   next();
 });
@@ -101,6 +113,9 @@ paymentSchema.index({ status: 1, paymentDate: -1 });
 paymentSchema.index({ paymentMethod: 1 });
 paymentSchema.index({ assignedType: 1 });
 paymentSchema.index({ apartmentReference: 1 });
+paymentSchema.index({ realOwner: 1 });
+paymentSchema.index({ realClient: 1 });
+paymentSchema.index({ realConcierge: 1 });
 
 export default mongoose.model('Payment', paymentSchema);
 

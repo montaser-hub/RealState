@@ -19,8 +19,8 @@ router.patch('/updateMyPassword', validation(userSchema.updatePasswordSchema), u
 router.get('/me', userController.myProfile);
 router.patch(
   '/updateMe',
-  validation(userSchema.updateMyProfileSchema),
   userController.uploadUserPhoto,
+  validation(userSchema.updateMyProfileSchema),
   userController.resizeUserPhoto,
   userController.updateMyProfile
 );
@@ -30,7 +30,9 @@ router
   .get(authorize('users', 'read'), userController.getUsers)
   .post(
     authorize('users', 'create'),
+    userController.uploadUserPhoto,
     validation(userSchema.createUserSchema),
+    userController.resizeUserPhoto,
     userController.addUser
   );
 
@@ -39,8 +41,8 @@ router
   .get(authorize('users', 'read'), userController.getUser)
   .patch(
     authorize('users', 'update'),
-    validation(userSchema.updateUserSchema),
     userController.uploadUserPhoto,
+    validation(userSchema.updateUserSchema),
     userController.resizeUserPhoto,
     userController.updateUser
   )
