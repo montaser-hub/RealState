@@ -4,7 +4,16 @@ import { resizeAndSaveImage } from "../../utils/fileUpload.js";
 import { uploadSingle } from "../../utils/multer.js";
 
 //Upload and resize user photo
-export const uploadUserPhoto = uploadSingle("photo", "image");
+// Only process if content-type is multipart/form-data, otherwise skip
+const multerUpload = uploadSingle("photo", "image");
+export const uploadUserPhoto = (req, res, next) => {
+  // Only run multer if content-type is multipart/form-data
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    return multerUpload(req, res, next);
+  }
+  // For JSON requests, skip multer and continue
+  next();
+};
 
 export const resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();

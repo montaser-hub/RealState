@@ -15,8 +15,8 @@ router
   .get(authorize('contracts', 'read'), contracrtController.getContracts)
   .post(
     authorize('contracts', 'create'),
-    validation(propertycontractSchema.createContractSchema),
     contracrtController.uploadContractDocument,
+    validation(propertycontractSchema.createContractSchema),
     contracrtController.resizeContractDocument,
     contracrtController.createContract
   );
@@ -26,8 +26,8 @@ router
   .get(authorize('contracts', 'read'), contracrtController.getContract)
   .patch(
     authorize('contracts', 'update'),
-    validation(propertycontractSchema.updateContractSchema),
     contracrtController.uploadContractDocument,
+    validation(propertycontractSchema.updateContractSchema),
     contracrtController.resizeContractDocument,
     contracrtController.updateContract
   )

@@ -20,18 +20,6 @@ const propertySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  realOwner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Owner',
-  },
-  realClient: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
-  },
-  realConcierge: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Concierge',
-  },
   category: {
     type: String,
     enum: ['apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'penthouse', 'other'],
@@ -44,7 +32,7 @@ const propertySchema = new mongoose.Schema({
   },
   listingType: {
     type: String,
-    enum: ['rent', 'sale'],
+    enum: ['rent', 'sale', 'rent & sale'],
   },
   city: String,
   state: String,
@@ -192,9 +180,6 @@ propertySchema.virtual('facilities', {
 propertySchema.index({ parentProperty: 1 });
 propertySchema.index({ category: 1 });
 propertySchema.index({ location: '2dsphere' });
-propertySchema.index({ realOwner: 1 });
-propertySchema.index({ realClient: 1 });
-propertySchema.index({ realConcierge: 1 });
 propertySchema.index({ block: 1 });
 
 const Property = mongoose.model('Property', propertySchema);

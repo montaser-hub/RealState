@@ -1,41 +1,25 @@
 import AppError from '../utils/appError.js';
-import * as rolePermissionService from '../modules/rolePermission/rolePermission.service.js';
-import * as userPermissionService from '../modules/userPermission/userPermission.service.js';
+import { defineAbilityFor, canPerformAction } from '../utils/ability.js';
 
+/**
+ * CASL-based authorization middleware
+ * @param {string} resource - Resource name (e.g., 'properties', 'contracts')
+ * @param {string} action - Action name (e.g., 'read', 'create', 'update', 'delete')
+ * @returns {Function} Express middleware function
+ */
 export const authorize = (resource, action) => {
   return async (req, res, next) => {
-    // Admin bypasses all permission checks
-    if (req.user?.role === 'admin') {
-      return next();
-    }
-
-    // Get user ID and role
-    const userId = req.user?._id || req.user?.id;
-    const userRole = req.user?.role;
-    
-    if (!userRole) {
-      return next(new AppError('User role not found', 403));
-    }
-
     try {
-      let resourcePermissions = [];
-
-      // 1. Check user-specific permissions first (overrides role permissions)
-      if (userId) {
-        const userPermissions = await userPermissionService.getUserPermissionsMap(userId);
-        if (userPermissions[resource]) {
-          resourcePermissions = userPermissions[resource];
-        }
+      // Ensure user is authenticated
+      if (!req.user) {
+        return next(new AppError('Authentication required', 401));
       }
 
-      // 2. If no user-specific permission, fall back to role permissions
-      if (resourcePermissions.length === 0) {
-        const rolePermissions = await rolePermissionService.getUserPermissions(userRole);
-        resourcePermissions = rolePermissions[resource] || [];
-      }
+      // Build CASL ability for the user
+      const ability = await defineAbilityFor(req.user);
 
-      // 3. Check if user has the required action
-      if (!resourcePermissions.includes(action)) {
+      // Check if user can perform the action on the resource
+      if (!canPerformAction(ability, action, resource)) {
         return next(
           new AppError(
             `You do not have permission to ${action} ${resource}`,
@@ -44,8 +28,12 @@ export const authorize = (resource, action) => {
         );
       }
 
+      // Attach ability to request for potential use in controllers
+      req.ability = ability;
+
       next();
     } catch (error) {
+      console.error('Authorization error:', error);
       return next(new AppError('Error checking permissions', 500));
     }
   };

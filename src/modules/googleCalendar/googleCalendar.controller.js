@@ -20,17 +20,30 @@ export const getAuthUrl = catchAsync(async (req, res, next) => {
 
 // Handle OAuth callback
 export const handleCallback = catchAsync(async (req, res, next) => {
-  const { code, state } = req.query;
+  const { code, state, error, error_description } = req.query;
+
+  // Handle OAuth errors
+  if (error) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const errorDesc = encodeURIComponent(error_description || 'Authentication failed');
+    return res.redirect(`${frontendUrl}/dashboard/reminder?error=${error}&error_description=${errorDesc}`);
+  }
 
   if (!code) {
     return next(new AppError('Authorization code is required', 400));
   }
 
-  await googleCalendarService.handleCallback(code, state);
+  try {
+    await googleCalendarService.handleCallback(code, state);
 
-  // Redirect to frontend success page
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-  res.redirect(`${frontendUrl}/settings?google-calendar=connected`);
+    // Redirect to frontend success page
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    res.redirect(`${frontendUrl}/dashboard/reminder?google-calendar=connected`);
+  } catch (error) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const errorDesc = encodeURIComponent(error.message || 'Connection failed');
+    res.redirect(`${frontendUrl}/dashboard/reminder?error=connection_failed&error_description=${errorDesc}`);
+  }
 });
 
 // Get connection status

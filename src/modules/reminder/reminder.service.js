@@ -6,22 +6,48 @@ import * as googleCalendarService from '../googleCalendar/googleCalendar.service
 export const createReminder = async (data) => {
   const reminder = await reminderRepo.create(data);
   
+  console.log('🔵 [Reminder Created]:', {
+    id: reminder._id,
+    title: reminder.title,
+    date: reminder.date,
+    time: reminder.time,
+    category: reminder.category,
+  });
+  
   // Auto-sync to Google Calendar if connected
   try {
+    console.log('🟢 [Google Calendar] Checking connection status...');
+    const status = await googleCalendarService.getConnectionStatus();
+    console.log('🟢 [Google Calendar] Connection status:', status);
+    
+    if (!status.isConnected) {
+      console.log('⚠️ [Google Calendar] Not connected, skipping sync');
+      return reminder;
+    }
+    
+    console.log('🟢 [Google Calendar] Creating calendar event...');
     const googleEventId = await googleCalendarService.createCalendarEvent(reminder);
+    console.log('✅ [Google Calendar] Event created:', googleEventId);
+    
     await reminderRepo.update(reminder._id, {
       googleEventId,
       syncedToGoogle: true,
     });
+    console.log('✅ [Database] Updated reminder with Google Event ID');
+    
     // Return updated reminder with Google sync info
     return await reminderRepo.findById(reminder._id);
   } catch (error) {
     // Don't fail reminder creation if Google sync fails
-    console.error('Failed to sync reminder to Google Calendar:', error.message);
+    console.error('❌ [Google Calendar] Sync failed:', error);
+    console.error('❌ [Google Calendar] Error details:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data,
+    });
     return reminder;
   }
 };
-
 export const getReminder = async (id) => {
   const reminder = await reminderRepo.findById(id);
   if (!reminder) throw new AppError('Reminder not found', 404);

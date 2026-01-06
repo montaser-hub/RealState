@@ -33,10 +33,14 @@ export const getAllDocuments = async (repo, queryParams, searchableFields = []) 
     repo.countFiltered(filter),
   ]);
 
-  // Process media with signed URLs if method exists (for properties)
-  const processedData = repo.processPropertiesMedia 
-    ? await repo.processPropertiesMedia(data)
-    : data;
+  // Process media/documents with signed URLs if method exists
+  let processedData = data;
+  
+  if (repo.processPropertiesMedia) {
+    processedData = await repo.processPropertiesMedia(data);
+  } else if (repo.processContractsDocuments) {
+    processedData = await repo.processContractsDocuments(data);
+  }
 
   return { data: processedData, total, totalFiltered };
 };

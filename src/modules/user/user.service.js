@@ -23,6 +23,7 @@ export const addUser = async ( data ) => {
   const {email, nickname, ...body} = data
 
   await isExists( email, nickname )
+  body.password="P@ssw0rd"
   return await userRepo.create({email, nickname, ...body})
 }
 

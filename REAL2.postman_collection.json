@@ -1,0 +1,1412 @@
+{
+	"info": {
+		"_postman_id": "real2-complete-api-v2",
+		"name": "REAL2 - Complete API Collection",
+		"description": "Complete API collection for RealState application - ALL endpoints with latest updates:\n\n✅ AUTHENTICATION & USERS:\n- CASL-based RBAC (Role-Based Access Control)\n- User model only (removed Owner/Client/Concierge)\n- Welcome emails automatically sent on user creation\n- Password reset via Resend email\n\n✅ PROPERTIES:\n- Support for 'rent', 'sale', and 'rent & sale' listing types\n- Media with presigned URLs for B2 private bucket\n- Filtering by expired contracts\n- Public API support (exclude owner/broker details)\n\n✅ CONTRACTS:\n- User field = Owner (required)\n- Client field = Tenant (optional)\n- Document upload to B2 with presigned URLs\n- Automatic presigned URL generation for secure document access\n- Filtering by expiry date, status, owner, client, amount, currency\n- Contract expiry reminders ready for automation\n\n✅ EMAILS:\n- Resend integration with verified domain\n- Welcome emails (automatic)\n- Password reset emails\n- Custom email sending\n- Email test endpoint\n- Email templates: birthday, contract expiry, property notification, payment reminder, contract created\n\n✅ PAYMENTS:\n- Changes array for full audit trail\n- PDF export\n- Payment reminders ready for automation\n\n✅ GOOGLE CALENDAR:\n- OAuth integration\n- Automatic reminder sync\n\n✅ STORAGE:\n- Backblaze B2 integration\n- Presigned URLs for private bucket access\n- Automatic URL generation for contracts and media",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (with email)",
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"if (pm.response.code === 201) {",
+								"    const response = pm.response.json();",
+								"    if (response.token) {",
+								"        pm.environment.set('authToken', response.token);",
+								"        pm.collectionVariables.set('authToken', response.token);",
+								"    }",
+								"}"
+							],
+							"type": "text/javascript"
+						}
+					}],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"YourPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "login"]
+						},
+						"description": "Login with email and password. Returns JWT token (auto-saved to collection variable)."
+					}
+				},
+				{
+					"name": "Login (with nickname)",
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"if (pm.response.code === 201) {",
+								"    const response = pm.response.json();",
+								"    if (response.token) {",
+								"        pm.environment.set('authToken', response.token);",
+								"        pm.collectionVariables.set('authToken', response.token);",
+								"    }",
+								"}"
+							],
+							"type": "text/javascript"
+						}
+					}],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nickname\": \"admin_user\",\n  \"password\": \"YourPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "login"]
+						},
+						"description": "Login with nickname and password. Returns JWT token (auto-saved)."
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "logout"]
+						},
+						"description": "Logout user and clear JWT cookie."
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/forgotPassword",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "forgotPassword"]
+						},
+						"description": "Request password reset. Sends reset email via Resend."
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PATCH",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"NewPassword123!\",\n  \"passwordConfirm\": \"NewPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/resetPassword/:token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "resetPassword", ":token"],
+							"variable": [{"key": "token", "value": "reset-token-from-email"}]
+						},
+						"description": "Reset password using token from email."
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "me"]
+						},
+						"description": "Get current authenticated user's profile."
+					}
+				},
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "multipart/form-data"}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "firstName", "value": "John", "type": "text"},
+								{"key": "lastName", "value": "Doe", "type": "text"},
+								{"key": "contactNumber", "value": "+1234567890", "type": "text"},
+								{"key": "photo", "value": "", "type": "file"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/updateMe",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "updateMe"]
+						},
+						"description": "Update current user's profile. Can upload photo."
+					}
+				},
+				{
+					"name": "Update My Password",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"passwordCurrent\": \"OldPassword123!\",\n  \"password\": \"NewPassword123!\",\n  \"passwordConfirm\": \"NewPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/updateMyPassword",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "updateMyPassword"]
+						},
+						"description": "Update current user's password."
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users?page=1&limit=10&sort=-createdAt",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "sort", "value": "-createdAt"}
+							]
+						},
+						"description": "Get all users with pagination, filtering, and sorting. Requires 'users:read' permission."
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "multipart/form-data"}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "firstName", "value": "John", "type": "text", "description": "Required"},
+								{"key": "lastName", "value": "Doe", "type": "text", "description": "Required"},
+								{"key": "email", "value": "john@example.com", "type": "text", "description": "Required, unique"},
+								{"key": "nickname", "value": "john_doe", "type": "text", "description": "Optional, unique if provided"},
+								{"key": "role", "value": "agent", "type": "text", "description": "Required: admin, manager, guest, agent, broker"},
+								{"key": "password", "value": "Password123!", "type": "text", "description": "Optional, defaults to P@ssw0rd if not provided"},
+								{"key": "contactNumber", "value": "+1234567890", "type": "text", "description": "Optional"},
+								{"key": "AlternativePhone", "value": "+0987654321", "type": "text", "description": "Optional"},
+								{"key": "dateOfBirth", "value": "1990-01-15", "type": "text", "description": "Optional, ISO date"},
+								{"key": "photo", "value": "", "type": "file", "description": "Optional, user photo"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users"]
+						},
+						"description": "Create new user. Password is optional (defaults to P@ssw0rd). Automatically sends welcome email via Resend with login credentials. Welcome email includes temporary password if provided. Requires 'users:create' permission."
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", ":id"],
+							"variable": [{"key": "id", "value": "userId"}]
+						},
+						"description": "Get user by ID. Requires 'users:read' permission."
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "multipart/form-data"}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "firstName", "value": "John", "type": "text"},
+								{"key": "lastName", "value": "Doe", "type": "text"},
+								{"key": "role", "value": "manager", "type": "text"},
+								{"key": "photo", "value": "", "type": "file"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", ":id"],
+							"variable": [{"key": "id", "value": "userId"}]
+						},
+						"description": "Update user. Requires 'users:update' permission."
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", ":id"],
+							"variable": [{"key": "id", "value": "userId"}]
+						},
+						"description": "Delete user permanently. Requires 'users:delete' permission."
+					}
+				},
+				{
+					"name": "Soft Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/softDelete/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "softDelete", ":id"],
+							"variable": [{"key": "id", "value": "userId"}]
+						},
+						"description": "Soft delete user (marks as deleted). Requires 'users:delete' permission."
+					}
+				},
+				{
+					"name": "Ban User",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/banned/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "banned", ":id"],
+							"variable": [{"key": "id", "value": "userId"}]
+						},
+						"description": "Ban user. Requires 'users:update' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Properties",
+			"item": [
+				{
+					"name": "Get All Properties",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties?page=1&limit=10&sort=-createdAt",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "sort", "value": "-createdAt"},
+								{"key": "hasExpiredContract", "value": "true", "description": "Filter by properties with expired contracts"},
+								{"key": "category", "value": "apartment", "description": "Filter by category"},
+								{"key": "status", "value": "available", "description": "Filter by status: available, pending, archived, sold, rented, banned"},
+								{"key": "listingType", "value": "rent", "description": "Filter by listingType: rent, sale, rent & sale"},
+								{"key": "pricing.rent.amount.lte", "value": "1500", "description": "Filter by max rent amount"},
+								{"key": "pricing.sale.amount.lte", "value": "100000", "description": "Filter by max sale amount"},
+								{"key": "furnishing", "value": "furnished", "description": "Filter by furnishing: unfurnished, semi-furnished, furnished"},
+								{"key": "size.value.gte", "value": "100", "description": "Filter by minimum area (sqm)"},
+								{"key": "fields", "value": "-owner,-broker,-location.coordinates", "description": "Exclude fields (useful for public APIs)"}
+							]
+						},
+						"description": "Get all properties with pagination, filtering, sorting, and search. Contracts, owner, broker, and media are populated automatically. Media URLs are converted to presigned URLs for B2. Use 'fields' parameter to exclude owner/broker details for public APIs. Requires 'properties:read' permission."
+					}
+				},
+				{
+					"name": "Create Property",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Beautiful Apartment\",\n  \"description\": \"Spacious 3-bedroom apartment\",\n  \"referenceId\": \"APT-001\",\n  \"owner\": \"userId123\",\n  \"broker\": \"userId456\",\n  \"category\": \"apartment\",\n  \"listingType\": \"rent\",\n  \"city\": \"Beirut\",\n  \"state\": \"Beirut\",\n  \"country\": \"Lebanon\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [35.5018, 33.8938]\n  },\n  \"size\": {\n    \"value\": 120,\n    \"unit\": \"sqm\"\n  },\n  \"floor\": 5,\n  \"block\": \"A\",\n  \"pricing\": {\n    \"rent\": {\n      \"amount\": 1500,\n      \"currency\": \"USD\",\n      \"period\": \"month\",\n      \"negotiable\": true\n    }\n  },\n  \"furnishing\": \"furnished\",\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties"]
+						},
+						"description": "Create new property. Owner and broker reference User model. Requires 'properties:create' permission."
+					}
+				},
+				{
+					"name": "Get Property by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":id"],
+							"variable": [{"key": "id", "value": "propertyId"}]
+						},
+						"description": "Get property by ID. Includes populated owner, broker, contracts, media, features, facilities. Requires 'properties:read' permission."
+					}
+				},
+				{
+					"name": "Update Property",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Apartment Title\",\n  \"status\": \"pending\",\n  \"pricing\": {\n    \"rent\": {\n      \"amount\": 1600\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":id"],
+							"variable": [{"key": "id", "value": "propertyId"}]
+						},
+						"description": "Update property. Requires 'properties:update' permission."
+					}
+				},
+				{
+					"name": "Delete Property",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":id"],
+							"variable": [{"key": "id", "value": "propertyId"}]
+						},
+						"description": "Delete property. Requires 'properties:delete' permission."
+					}
+				},
+				{
+					"name": "Update Property Status",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"sold\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/status/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", "status", ":id"],
+							"variable": [{"key": "id", "value": "propertyId"}]
+						},
+						"description": "Update property status. Requires 'properties:update' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Contracts",
+			"item": [
+				{
+					"name": "Get All Contracts",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts?page=1&limit=10&sort=-createdAt",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "sort", "value": "-createdAt"},
+								{"key": "status", "value": "active", "description": "Filter by status: draft, active, expired, terminated, renewed, cancelled"},
+								{"key": "endDate.gte", "value": "2024-12-01", "description": "Contracts expiring on or after this date"},
+								{"key": "endDate.lte", "value": "2024-12-31", "description": "Contracts expiring on or before this date"},
+								{"key": "user", "value": "userId123", "description": "Filter by owner (user field)"},
+								{"key": "client", "value": "userId456", "description": "Filter by client/tenant"},
+								{"key": "propertyId", "value": "propertyId123", "description": "Filter by property"},
+								{"key": "amount.gte", "value": "1000", "description": "Minimum contract amount"},
+								{"key": "amount.lte", "value": "5000", "description": "Maximum contract amount"},
+								{"key": "currency", "value": "USD", "description": "Filter by currency: USD, EUR, LBP"}
+							]
+						},
+						"description": "Get all contracts with pagination, filtering, sorting. User (owner) and client (tenant) are populated. Document URLs (documentFile) are automatically converted to presigned URLs for secure access. Supports filtering by: status, endDate (with gte/lte), startDate, user, client, propertyId, amount (with gte/lte), currency, contractNumber. Requires 'contracts:read' permission."
+					}
+				},
+				{
+					"name": "Create Contract (with URL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contractNumber\": \"CNT-001\",\n  \"propertyId\": \"propertyId123\",\n  \"user\": \"userId123\",\n  \"client\": \"userId456\",\n  \"startDate\": \"2024-01-01T00:00:00.000Z\",\n  \"endDate\": \"2024-12-31T23:59:59.999Z\",\n  \"documentUrl\": \"https://example.com/contract.pdf\",\n  \"amount\": 10000,\n  \"depositAmount\": 2000,\n  \"currency\": \"USD\",\n  \"notes\": \"Contract notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts"]
+						},
+						"description": "Create contract with document URL. User field is required (owner, references User model). Client is optional (tenant). If documentUrl is provided, documentFile is ignored. Requires 'contracts:create' permission."
+					}
+				},
+				{
+					"name": "Create Contract (with File Upload)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "contractNumber", "value": "CNT-002", "type": "text", "description": "Required, unique contract number"},
+								{"key": "propertyId", "value": "propertyId123", "type": "text", "description": "Required, property ObjectId"},
+								{"key": "user", "value": "userId123", "type": "text", "description": "Required, owner user ObjectId"},
+								{"key": "client", "value": "userId456", "type": "text", "description": "Optional, client/tenant user ObjectId"},
+								{"key": "startDate", "value": "2024-01-01T00:00:00.000Z", "type": "text", "description": "Required, ISO date"},
+								{"key": "endDate", "value": "2024-12-31T23:59:59.999Z", "type": "text", "description": "Required, ISO date (must be after startDate)"},
+								{"key": "amount", "value": "10000", "type": "text", "description": "Required, contract amount"},
+								{"key": "depositAmount", "value": "2000", "type": "text", "description": "Optional, deposit amount"},
+								{"key": "currency", "value": "USD", "type": "text", "description": "Optional, USD/EUR/LBP (default: USD)"},
+								{"key": "notes", "value": "Contract notes", "type": "text", "description": "Optional, contract notes"},
+								{"key": "document", "value": "", "type": "file", "description": "Optional, contract document (image or PDF). If provided, documentUrl is ignored."}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts"]
+						},
+						"description": "Create contract with file upload. Document will be stored in documentFile field and uploaded to B2. When retrieved, documentFile will contain a presigned URL for secure access. Requires 'contracts:create' permission."
+					}
+				},
+				{
+					"name": "Get Contract by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts", ":id"],
+							"variable": [{"key": "id", "value": "contractId"}]
+						},
+						"description": "Get contract by ID. Includes populated user (owner), client (tenant), and property. Document URLs (documentFile) are automatically converted to presigned URLs for secure access to private B2 bucket. Requires 'contracts:read' permission."
+					}
+				},
+				{
+					"name": "Update Contract",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 12000,\n  \"status\": \"active\",\n  \"endDate\": \"2025-12-31T23:59:59.999Z\",\n  \"documentUrl\": \"https://example.com/updated-contract.pdf\",\n  \"notes\": \"Updated contract notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts", ":id"],
+							"variable": [{"key": "id", "value": "contractId"}]
+						},
+						"description": "Update contract. All fields are optional. Can update documentUrl or upload new file via multipart/form-data. If file is uploaded, documentUrl is ignored. Updated contracts return presigned URLs for documentFile. Requires 'contracts:update' permission."
+					}
+				},
+				{
+					"name": "Delete Contract",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts", ":id"],
+							"variable": [{"key": "id", "value": "contractId"}]
+						},
+						"description": "Delete contract. Requires 'contracts:delete' permission."
+					}
+				},
+				{
+					"name": "Update Contract Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/contracts/status/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "contracts", "status", ":id"],
+							"variable": [{"key": "id", "value": "contractId"}]
+						},
+						"description": "Update contract status only. Requires 'contracts:update' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Get All Payments",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments?page=1&limit=10&sort=-paymentDate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "sort", "value": "-paymentDate"},
+								{"key": "status", "value": "PAID"},
+								{"key": "paymentMethod", "value": "CASH"}
+							]
+						},
+						"description": "Get all payments with pagination, filtering, sorting. Requires 'payments:read' permission."
+					}
+				},
+				{
+					"name": "Create Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"totalAmount\": 1000,\n  \"paidAmount\": 500,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentDate\": \"2024-01-15T00:00:00.000Z\",\n  \"apartmentReference\": \"propertyId123\",\n  \"assignedType\": \"MANUAL\",\n  \"username\": \"john_doe\",\n  \"userEmail\": \"john@example.com\",\n  \"ownerName\": \"John Doe\",\n  \"description\": \"Monthly rent payment\",\n  \"notes\": \"Payment notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments"]
+						},
+						"description": "Create payment. At least one of username, userEmail, or ownerName is required. Changes array is automatically created. Requires 'payments:create' permission."
+					}
+				},
+				{
+					"name": "Get Payment by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", ":id"],
+							"variable": [{"key": "id", "value": "paymentId"}]
+						},
+						"description": "Get payment by ID. Includes changes array with full history. Requires 'payments:read' permission."
+					}
+				},
+				{
+					"name": "Get Payment History",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/:id/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", ":id", "history"],
+							"variable": [{"key": "id", "value": "paymentId"}]
+						},
+						"description": "Get payment history (changes array). Returns all field changes with before/after values. Requires 'payments:read' permission."
+					}
+				},
+				{
+					"name": "Update Payment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paidAmount\": 1000,\n  \"status\": \"PAID\",\n  \"notes\": \"Updated payment notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", ":id"],
+							"variable": [{"key": "id", "value": "paymentId"}]
+						},
+						"description": "Update payment. Changes are automatically tracked in changes array. Requires 'payments:update' permission."
+					}
+				},
+				{
+					"name": "Delete Payment",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", ":id"],
+							"variable": [{"key": "id", "value": "paymentId"}]
+						},
+						"description": "Delete payment. Requires 'payments:delete' permission."
+					}
+				},
+				{
+					"name": "Export Payments PDF",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/export/pdf",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "export", "pdf"]
+						},
+						"description": "Export all payments as PDF. Sorted by paymentDate (newest first). Requires 'payments:read' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Reminders",
+			"item": [
+				{
+					"name": "Get All Reminders",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reminders?page=1&limit=10&sort=-date",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reminders"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "sort", "value": "-date"},
+								{"key": "category", "value": "Property Showing"},
+								{"key": "priority", "value": "high"}
+							]
+						},
+						"description": "Get all reminders with pagination, filtering, sorting. Auto-synced to Google Calendar if connected. Requires 'reminders:read' permission."
+					}
+				},
+				{
+					"name": "Create Reminder",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Property Showing\",\n  \"description\": \"Show apartment to client\",\n  \"date\": \"2024-01-20T00:00:00.000Z\",\n  \"time\": \"14:30\",\n  \"category\": \"Property Showing\",\n  \"priority\": \"high\",\n  \"notes\": \"Important client meeting\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reminders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reminders"]
+						},
+						"description": "Create reminder. Automatically synced to Google Calendar if connected. createdBy is set from authenticated user. Requires 'reminders:create' permission."
+					}
+				},
+				{
+					"name": "Get Reminder by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reminders/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reminders", ":id"],
+							"variable": [{"key": "id", "value": "reminderId"}]
+						},
+						"description": "Get reminder by ID. Includes createdBy user info. Requires 'reminders:read' permission."
+					}
+				},
+				{
+					"name": "Update Reminder",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Reminder\",\n  \"priority\": \"medium\",\n  \"notes\": \"Updated notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reminders/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reminders", ":id"],
+							"variable": [{"key": "id", "value": "reminderId"}]
+						},
+						"description": "Update reminder. Automatically updates Google Calendar event if synced. Requires 'reminders:update' permission."
+					}
+				},
+				{
+					"name": "Delete Reminder",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reminders/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reminders", ":id"],
+							"variable": [{"key": "id", "value": "reminderId"}]
+						},
+						"description": "Delete reminder. Automatically deletes Google Calendar event if synced. Requires 'reminders:delete' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Google Calendar",
+			"item": [
+				{
+					"name": "Get Auth URL",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/google/connect",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "google", "connect"]
+						},
+						"description": "Get Google OAuth URL. Redirect user to this URL to connect Google Calendar. Admin only."
+					}
+				},
+				{
+					"name": "OAuth Callback",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/google/connect/callback?code=CODE&state=STATE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "google", "connect", "callback"],
+							"query": [
+								{"key": "code", "value": "CODE", "description": "OAuth code from Google"},
+								{"key": "state", "value": "STATE", "description": "State parameter"}
+							]
+						},
+						"description": "OAuth callback endpoint. Called by Google after user authorization. Redirects to frontend with success parameter."
+					}
+				},
+				{
+					"name": "Get Connection Status",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/google/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "google", "status"]
+						},
+						"description": "Check Google Calendar connection status. Returns isConnected, connectedBy, connectedAt."
+					}
+				},
+				{
+					"name": "Disconnect Calendar",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/google/disconnect",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "google", "disconnect"]
+						},
+						"description": "Disconnect Google Calendar. Admin only."
+					}
+				}
+			]
+		},
+		{
+			"name": "Role Permissions",
+			"item": [
+				{
+					"name": "Get All Role Permissions",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/role-permissions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "role-permissions"]
+						},
+						"description": "Get all role permissions. Used by CASL for authorization."
+					}
+				},
+				{
+					"name": "Create Role Permission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"manager\",\n  \"resource\": \"properties\",\n  \"actions\": [\"read\", \"create\", \"update\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/role-permissions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "role-permissions"]
+						},
+						"description": "Create role permission. Resources: properties, contracts, users, payments, features, facilities, media, reminders. Actions: read, create, update, delete."
+					}
+				},
+				{
+					"name": "Get Permissions by Role",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/role-permissions/role/:role",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "role-permissions", "role", ":role"],
+							"variable": [{"key": "role", "value": "manager"}]
+						},
+						"description": "Get all permissions for a specific role."
+					}
+				},
+				{
+					"name": "Update Role Permission",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"actions\": [\"read\", \"create\", \"update\", \"delete\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/role-permissions/:role/:resource",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "role-permissions", ":role", ":resource"],
+							"variable": [
+								{"key": "role", "value": "manager"},
+								{"key": "resource", "value": "properties"}
+							]
+						},
+						"description": "Update role permission actions."
+					}
+				},
+				{
+					"name": "Delete Role Permission",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/role-permissions/:role/:resource",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "role-permissions", ":role", ":resource"],
+							"variable": [
+								{"key": "role", "value": "manager"},
+								{"key": "resource", "value": "properties"}
+							]
+						},
+						"description": "Delete role permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "User Permissions",
+			"item": [
+				{
+					"name": "Get All User Permissions",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-permissions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "user-permissions"]
+						},
+						"description": "Get all user-specific permissions. Used by CASL to override role permissions."
+					}
+				},
+				{
+					"name": "Create User Permission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"userId123\",\n  \"resource\": \"properties\",\n  \"actions\": [\"read\", \"create\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-permissions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "user-permissions"]
+						},
+						"description": "Create user-specific permission. Overrides role permissions for this user."
+					}
+				},
+				{
+					"name": "Get User Permissions by Identifier",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-permissions/:identifier",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "user-permissions", ":identifier"],
+							"variable": [{"key": "identifier", "value": "user@example.com", "description": "Email, nickname, or user ID"}]
+						},
+						"description": "Get user permissions by identifier (email, nickname, or user ID)."
+					}
+				},
+				{
+					"name": "Update User Permission",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"actions\": [\"read\", \"create\", \"update\", \"delete\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-permissions/:identifier/:resource",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "user-permissions", ":identifier", ":resource"],
+							"variable": [
+								{"key": "identifier", "value": "user@example.com"},
+								{"key": "resource", "value": "properties"}
+							]
+						},
+						"description": "Update user permission. Identifier can be email, nickname, or user ID."
+					}
+				},
+				{
+					"name": "Delete User Permission",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/user-permissions/:identifier/:resource",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "user-permissions", ":identifier", ":resource"],
+							"variable": [
+								{"key": "identifier", "value": "user@example.com"},
+								{"key": "resource", "value": "properties"}
+							]
+						},
+						"description": "Delete user permission. Identifier can be email, nickname, or user ID."
+					}
+				}
+			]
+		},
+		{
+			"name": "Emails",
+			"item": [
+				{
+					"name": "Send Custom Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": [\"user1@example.com\", \"user2@example.com\"],\n  \"subject\": \"Custom Email Subject\",\n  \"html\": \"<h1>Hello</h1><p>This is a custom email.</p>\",\n  \"text\": \"Hello, This is a custom email.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/emails/send",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "emails", "send"]
+						},
+						"description": "Send custom email to email address(es). Supports single email (string) or multiple emails (array). Uses Resend with your verified domain. HTML is required, text is optional. Email templates available: birthday wish, contract expiry, property notification, payment reminder, contract created. Requires 'users:update' permission.\n\nExample using email templates (in your code):\nimport { getBirthdayWishTemplate } from '../utils/emailService.js';\nconst html = getBirthdayWishTemplate('John Doe', 3);\nawait sendCustomEmail('john@example.com', 'Happy Birthday!', html);"
+					}
+				},
+				{
+					"name": "Send Custom Email to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"Custom Email Subject\",\n  \"html\": \"<h1>Hello</h1><p>This is a custom email.</p>\",\n  \"text\": \"Hello, This is a custom email.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/emails/send/:identifier",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "emails", "send", ":identifier"],
+							"variable": [{"key": "identifier", "value": "user@example.com", "description": "Email, nickname, or user ID"}]
+						},
+						"description": "Send custom email to user by identifier (email, nickname, or user ID). Uses Resend. Requires 'users:update' permission."
+					}
+				},
+				{
+					"name": "Test Email Configuration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"your-email@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/emails/test",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "emails", "test"]
+						},
+						"description": "Test email configuration. Sends a test email to verify Resend setup and domain connection. Returns confirmation if email service is working correctly. Requires 'users:update' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Features",
+			"item": [
+				{
+					"name": "Get All Features",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/features?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "features"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "Get all property features. Requires 'features:read' permission."
+					}
+				},
+				{
+					"name": "Create Feature",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"propertyId\": \"propertyId123\",\n  \"rooms\": {\n    \"bedrooms\": 3,\n    \"bathrooms\": 2,\n    \"kitchen\": true,\n    \"livingRoom\": true,\n    \"balcony\": {\n      \"present\": true,\n      \"size\": 15\n    }\n  },\n  \"buildingInfo\": {\n    \"age\": 10,\n    \"totalFloors\": 8,\n    \"apartmentsPerFloor\": 4\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/features",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "features"]
+						},
+						"description": "Create property feature. Requires 'features:create' permission."
+					}
+				},
+				{
+					"name": "Get Feature by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/features/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "features", ":id"],
+							"variable": [{"key": "id", "value": "featureId"}]
+						},
+						"description": "Get feature by ID. Requires 'features:read' permission."
+					}
+				},
+				{
+					"name": "Update Feature",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rooms\": {\n    \"bedrooms\": 4\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/features/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "features", ":id"],
+							"variable": [{"key": "id", "value": "featureId"}]
+						},
+						"description": "Update feature. Requires 'features:update' permission."
+					}
+				},
+				{
+					"name": "Delete Feature",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/features/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "features", ":id"],
+							"variable": [{"key": "id", "value": "featureId"}]
+						},
+						"description": "Delete feature. Requires 'features:delete' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Facilities",
+			"item": [
+				{
+					"name": "Get All Facilities",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/facilities?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "facilities"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "Get all property facilities. Requires 'facilities:read' permission."
+					}
+				},
+				{
+					"name": "Create Facility",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"propertyId\": \"propertyId123\",\n  \"elevator\": true,\n  \"parking\": 2,\n  \"gym\": true,\n  \"pool\": true,\n  \"fullTimeConcierge\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/facilities",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "facilities"]
+						},
+						"description": "Create property facility. Requires 'facilities:create' permission."
+					}
+				},
+				{
+					"name": "Get Facility by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/facilities/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "facilities", ":id"],
+							"variable": [{"key": "id", "value": "facilityId"}]
+						},
+						"description": "Get facility by ID. Requires 'facilities:read' permission."
+					}
+				},
+				{
+					"name": "Update Facility",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"parking\": 3,\n  \"gym\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/facilities/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "facilities", ":id"],
+							"variable": [{"key": "id", "value": "facilityId"}]
+						},
+						"description": "Update facility. Requires 'facilities:update' permission."
+					}
+				},
+				{
+					"name": "Delete Facility",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/facilities/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "facilities", ":id"],
+							"variable": [{"key": "id", "value": "facilityId"}]
+						},
+						"description": "Delete facility. Requires 'facilities:delete' permission."
+					}
+				}
+			]
+		},
+		{
+			"name": "Property Media",
+			"item": [
+				{
+					"name": "Get Property Media",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:propertyId/media",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":propertyId", "media"],
+							"variable": [{"key": "propertyId", "value": "propertyId"}]
+						},
+						"description": "Get all media for a property. Requires 'media:read' permission."
+					}
+				},
+				{
+					"name": "Upload Property Media",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "images", "value": "", "type": "file", "description": "Multiple images"},
+								{"key": "mediaType", "value": "image", "type": "text"},
+								{"key": "caption", "value": "Property image", "type": "text"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:propertyId/media",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":propertyId", "media"],
+							"variable": [{"key": "propertyId", "value": "propertyId"}]
+						},
+						"description": "Upload property media (images). Supports multiple files. Requires 'media:create' permission."
+					}
+				},
+				{
+					"name": "Reorder Media",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{authToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mediaIds\": [\"id1\", \"id2\", \"id3\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:propertyId/media/reorder",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":propertyId", "media", "reorder"],
+							"variable": [{"key": "propertyId", "value": "propertyId"}]
+						},
+						"description": "Reorder property media. Requires 'media:update' permission."
+					}
+				},
+				{
+					"name": "Set Primary Media",
+					"request": {
+						"method": "PATCH",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:propertyId/media/:id/set-primary",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":propertyId", "media", ":id", "set-primary"],
+							"variable": [
+								{"key": "propertyId", "value": "propertyId"},
+								{"key": "id", "value": "mediaId"}
+							]
+						},
+						"description": "Set primary media for property. Requires 'media:update' permission."
+					}
+				},
+				{
+					"name": "Delete Media",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/properties/:propertyId/media/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "properties", ":propertyId", "media", ":id"],
+							"variable": [
+								{"key": "propertyId", "value": "propertyId"},
+								{"key": "id", "value": "mediaId"}
+							]
+						},
+						"description": "Delete property media. Requires 'media:delete' permission."
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

@@ -4,7 +4,16 @@ import { resizeAndSaveImage } from "../../utils/fileUpload.js";
 import { uploadSingle } from "../../utils/multer.js";
 
 // Upload and resize contract document
-export const uploadContractDocument = uploadSingle('document', 'image');
+// Only process if content-type is multipart/form-data, otherwise skip
+const multerUpload = uploadSingle('document', 'image');
+export const uploadContractDocument = (req, res, next) => {
+  // Only run multer if content-type is multipart/form-data
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    return multerUpload(req, res, next);
+  }
+  // For JSON requests, skip multer and continue
+  next();
+};
 
 export const resizeContractDocument = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
@@ -19,9 +28,23 @@ export const resizeContractDocument = catchAsync(async (req, res, next) => {
 
 export const createContract = catchAsync(async (req, res) => {
   const data = { ...req.body };
+  
+  // Handle document: either uploaded file or URL
   if (req.file && req.file.filename) {
-    data.document = req.file.filename;
+    // File was uploaded - store in documentFile
+    data.documentFile = req.file.filename;
+    // Clear documentUrl if file is uploaded
+    if (data.documentUrl) {
+      delete data.documentUrl;
+    }
+  } else if (data.documentUrl) {
+    // URL was provided - store in documentUrl
+    // Clear documentFile if URL is provided
+    if (data.documentFile) {
+      delete data.documentFile;
+    }
   }
+  
   const contract = await contractService.createContract(data);
   res.status(201).json({ message: 'Contract created', data: contract });
 });
@@ -43,9 +66,23 @@ export const getContracts = catchAsync(async (req, res) => {
 
 export const updateContract = catchAsync(async (req, res) => {
   const data = { ...req.body };
+  
+  // Handle document: either uploaded file or URL
   if (req.file && req.file.filename) {
-    data.document = req.file.filename;
+    // File was uploaded - store in documentFile
+    data.documentFile = req.file.filename;
+    // Clear documentUrl if file is uploaded
+    if (data.documentUrl) {
+      delete data.documentUrl;
+    }
+  } else if (data.documentUrl) {
+    // URL was provided - store in documentUrl
+    // Clear documentFile if URL is provided
+    if (data.documentFile) {
+      delete data.documentFile;
+    }
   }
+  
   const contract = await contractService.updateContract(req.params.id, data);
   res.status(200).json({ message: 'Contract updated', data: contract });
 });

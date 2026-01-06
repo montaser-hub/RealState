@@ -34,37 +34,31 @@ export const createContractSchema = Joi.object({
       'date.greater': 'End date must be after start date.',
     }),
 
-  document: Joi.string()
+  documentUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'Document URL must be a valid URL.',
+    }),
+
+  documentFile: Joi.string()
     .optional()
     .allow('', null),
 
-  realOwner: Joi.objectId()
-    .optional()
-    .allow('', null),
+  user: Joi.objectId()
+    .required()
+    .messages({
+      'any.required': 'Contract user is required.',
+      'any.invalid': 'Invalid user ID.',
+    }),
 
-  realClient: Joi.objectId()
+  client: Joi.objectId()
     .optional()
-    .allow('', null),
-
-  realConcierge: Joi.objectId()
-    .optional()
-    .allow('', null),
-
-  ownerName: Joi.string()
-    .optional()
-    .allow('', null),
-
-  ownerPhone: Joi.string()
-    .optional()
-    .allow('', null),
-
-  clientName: Joi.string()
-    .optional()
-    .allow('', null),
-
-  clientPhone: Joi.string()
-    .optional()
-    .allow('', null),
+    .allow('', null)
+    .messages({
+      'any.invalid': 'Invalid client user ID.',
+    }),
 
   amount: Joi.number()
     .min(0)
@@ -125,37 +119,30 @@ export const updateContractSchema = Joi.object({
       'any.only': 'Invalid contract status.',
     }),
 
-  document: Joi.string()
+  documentUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'Document URL must be a valid URL.',
+    }),
+
+  documentFile: Joi.string()
     .optional()
     .allow('', null),
 
-  realOwner: Joi.objectId()
+  user: Joi.objectId()
     .optional()
-    .allow('', null),
+    .messages({
+      'any.invalid': 'Invalid user ID.',
+    }),
 
-  realClient: Joi.objectId()
+  client: Joi.objectId()
     .optional()
-    .allow('', null),
-
-  realConcierge: Joi.objectId()
-    .optional()
-    .allow('', null),
-
-  ownerName: Joi.string()
-    .optional()
-    .allow('', null),
-
-  ownerPhone: Joi.string()
-    .optional()
-    .allow('', null),
-
-  clientName: Joi.string()
-    .optional()
-    .allow('', null),
-
-  clientPhone: Joi.string()
-    .optional()
-    .allow('', null),
+    .allow('', null)
+    .messages({
+      'any.invalid': 'Invalid client user ID.',
+    }),
 
   amount: Joi.number()
     .min(0)

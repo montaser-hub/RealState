@@ -26,7 +26,15 @@ router.post(
   emailController.sendCustomEmailByIdentifier
 );
 
+// Test email endpoint (for testing email functionality)
+router.post(
+  '/test',
+  authorize('users', 'update'), // Admin/Manager can test emails
+  emailController.testEmail
+);
+
 export default router;
+
 
 
 

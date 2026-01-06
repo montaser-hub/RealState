@@ -16,9 +16,6 @@ export const createPropertySchema = Joi.object({
   }),
   owner: Joi.objectId().optional().allow('', null),
   broker: Joi.objectId().optional().allow('', null),
-  realOwner: Joi.objectId().optional().allow('', null),
-  realClient: Joi.objectId().optional().allow('', null),
-  realConcierge: Joi.objectId().optional().allow('', null),
   category: Joi.string()
     .valid('apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'penthouse', 'other')
     .required()
@@ -30,8 +27,8 @@ export const createPropertySchema = Joi.object({
   parentProperty: Joi.objectId().optional().allow('', null),
   listingType: Joi.when('category', {
     is: 'building',
-    then: Joi.string().valid('rent', 'sale').optional().allow('', null),
-    otherwise: Joi.string().valid('rent', 'sale').required().messages({
+    then: Joi.string().valid('rent', 'sale', 'rent & sale').optional().allow('', null),
+    otherwise: Joi.string().valid('rent', 'sale', 'rent & sale').required().messages({
       'any.required': 'Listing type is required.',
       'any.only': 'Invalid listing type.'
     })
@@ -106,16 +103,13 @@ export const updatePropertySchema = Joi.object({
   referenceId: Joi.string().optional(),
   owner: Joi.objectId().optional(),
   broker: Joi.objectId().optional(),
-  realOwner: Joi.objectId().optional().allow('', null),
-  realClient: Joi.objectId().optional().allow('', null),
-  realConcierge: Joi.objectId().optional().allow('', null),
   category: Joi.string()
     .valid('apartment', 'shop', 'office', 'land', 'warehouse', 'villa', 'house', 'building', 'loft', 'penthouse', 'other')
     .optional(),
   otherCategory: Joi.string().optional().allow('', null),
   parentProperty: Joi.objectId().optional(),
   listingType: Joi.string()
-    .valid('rent', 'sale')
+    .valid('rent', 'sale', 'rent & sale')
     .optional(),
   city: Joi.string().optional().allow('', null),
   state: Joi.string().optional().allow('', null),

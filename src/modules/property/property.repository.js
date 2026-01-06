@@ -35,11 +35,8 @@ const processPropertyMedia = async (property) => {
 
 export const findById = async (id) => {
   const property = await Property.findById(id)
-    .populate('owner', 'firstName lastName fullName')
-    .populate('broker', 'firstName lastName fullName')
-    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('owner', 'firstName lastName fullName email contactNumber AlternativePhone')
+    .populate('broker', 'firstName lastName fullName email contactNumber AlternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',
@@ -58,11 +55,8 @@ export const findById = async (id) => {
 
 export const update = async (id, data) => {
   const property = await Property.findByIdAndUpdate(id, data, { new: true })
-    .populate('owner', 'firstName lastName fullName')
-    .populate('broker', 'firstName lastName fullName')
-    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('owner', 'firstName lastName fullName email contactNumber AlternativePhone')
+    .populate('broker', 'firstName lastName fullName email contactNumber AlternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',
@@ -93,11 +87,8 @@ export const findOne = (filter) => {
  */
 export const findAll = () => {
   return Property.find()
-    .populate('owner', 'firstName lastName fullName')
-    .populate('broker', 'firstName lastName fullName')
-    .populate('realOwner', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realClient', 'firstName lastName fullName email contactNumber alternativePhone')
-    .populate('realConcierge', 'firstName lastName fullName email contactNumber alternativePhone')
+    .populate('owner', 'firstName lastName fullName email contactNumber AlternativePhone')
+    .populate('broker', 'firstName lastName fullName email contactNumber AlternativePhone')
     .populate({
       path: 'media',
       select: 'url mediaType isPrimary order caption',

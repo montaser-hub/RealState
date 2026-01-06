@@ -26,32 +26,26 @@ const contractSchema = new mongoose.Schema( {
     default: 'draft',
     index: true,
   },
-  document: {
+  // Document can be either a URL (link) or uploaded file path
+  documentUrl: {
     type: String,
+    default: null,
   },
-  realOwner: {
+  documentFile: {
+    type: String,
+    default: null,
+  },
+  // Reference to User model - Required for N8N integration
+  user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Owner',
+    ref: 'User',
+    required: true,
+    index: true,
   },
-  realClient: {
+  client: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
-  },
-  realConcierge: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Concierge',
-  },
-  ownerName: {
-    type: String,
-  },
-  ownerPhone: {
-    type: String,
-  },
-  clientName: {
-    type: String,
-  },
-  clientPhone: {
-    type: String,
+    ref: 'User',
+    default: null,
   },
   amount: {
     type: Number,
@@ -74,9 +68,8 @@ const contractSchema = new mongoose.Schema( {
 
 // Indexes
 contractSchema.index({ propertyId: 1 }, { background: true });
-contractSchema.index({ realOwner: 1 });
-contractSchema.index({ realClient: 1 });
-contractSchema.index({ realConcierge: 1 });
+contractSchema.index({ user: 1 });
+contractSchema.index({ client: 1 });
 
 // Static method to update expired contracts
 contractSchema.statics.updateExpiredContracts = async function() {
@@ -92,6 +85,14 @@ contractSchema.statics.updateExpiredContracts = async function() {
   );
   return result;
 };
+
+// Pre-save hook: Validate at least user is provided
+contractSchema.pre('save', function(next) {
+  if (!this.user) {
+    return next(new Error('Contract user is required'));
+  }
+  next();
+});
 
 // Pre-save hook: Automatically set status to expired if endDate has passed
 contractSchema.pre('save', function(next) {

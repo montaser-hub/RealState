@@ -43,8 +43,7 @@ const googleCalendarConfigSchema = new mongoose.Schema({
 googleCalendarConfigSchema.pre('save', function (next) {
   if (this.isModified('accessToken') || this.isModified('refreshToken')) {
     const algorithm = 'aes-256-cbc';
-    const key = Buffer.from(process.env.JWT_SECRET || 'default-secret-key', 'utf8').slice(0, 32);
-
+    const key = Buffer.from(process.env.ENCRYPTION_KEY || 'default-secret-key', 'utf8').slice(0, 32);
     const encrypt = (text) => {
       // Don't encrypt if already encrypted (contains colon separator)
       if (text && text.includes(':')) {
@@ -71,7 +70,7 @@ googleCalendarConfigSchema.pre('save', function (next) {
 // Decrypt tokens when retrieving
 googleCalendarConfigSchema.methods.decryptTokens = function () {
   const algorithm = 'aes-256-cbc';
-  const key = Buffer.from(process.env.JWT_SECRET || 'default-secret-key', 'utf8').slice(0, 32);
+  const key = Buffer.from(process.env.ENCRYPTION_KEY || 'default-secret-key', 'utf8').slice(0, 32);
 
   const decrypt = (encryptedText) => {
     const parts = encryptedText.split(':');

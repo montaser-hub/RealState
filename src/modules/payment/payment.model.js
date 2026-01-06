@@ -39,22 +39,12 @@ const paymentSchema = new mongoose.Schema({
     ref: 'Property',
     default: null,
   },
-  assignedType: {
-    type: String,
-    enum: ['ASSIGNED', 'MANUAL'],
-    default: 'MANUAL',
-  },
-  realOwner: {
+  // Optional User reference
+  user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Owner',
-  },
-  realClient: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
-  },
-  realConcierge: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Concierge',
+    ref: 'User',
+    default: null,
+    index: true,
   },
   // Ownership identifiers (at least one required)
   username: {
@@ -82,6 +72,40 @@ const paymentSchema = new mongoose.Schema({
     trim: true,
     maxlength: 2000,
   },
+  // Track all changes to payment
+  changes: [{
+    field: {
+      type: String,
+      required: true,
+      enum: ['status', 'paidAmount', 'totalAmount', 'paymentMethod', 'notes', 'description', 'paymentDate']
+    },
+    oldValue: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    newValue: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    changedByName: {
+      type: String,
+      default: null,
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+    },
+  }],
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -101,8 +125,8 @@ paymentSchema.pre('save', function (next) {
 
 // Pre-save hook: Validate at least one ownership identifier
 paymentSchema.pre('save', function (next) {
-  if (!this.username && !this.userEmail && !this.ownerName && !this.realOwner && !this.realClient && !this.realConcierge) {
-    return next(new Error('At least one ownership identifier (username, userEmail, ownerName, realOwner, realClient, or realConcierge) is required'));
+  if (!this.username && !this.userEmail && !this.ownerName) {
+    return next(new Error('At least one ownership identifier (username, userEmail, or ownerName) is required'));
   }
   next();
 });
@@ -111,11 +135,9 @@ paymentSchema.pre('save', function (next) {
 paymentSchema.index({ paymentDate: -1 });
 paymentSchema.index({ status: 1, paymentDate: -1 });
 paymentSchema.index({ paymentMethod: 1 });
-paymentSchema.index({ assignedType: 1 });
 paymentSchema.index({ apartmentReference: 1 });
-paymentSchema.index({ realOwner: 1 });
-paymentSchema.index({ realClient: 1 });
-paymentSchema.index({ realConcierge: 1 });
+paymentSchema.index({ user: 1 });
+paymentSchema.index({ 'changes.changedAt': -1 });
 
 export default mongoose.model('Payment', paymentSchema);
 

@@ -4,8 +4,7 @@ const propertyFacilitySchema = new mongoose.Schema( {
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
-    required: true,
-    index: true
+    required: true
  },
   elevator: Boolean,
   electricity: Boolean,

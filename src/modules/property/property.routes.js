@@ -30,7 +30,7 @@ router
   )
   .delete(authorize('properties', 'delete'), propertyController.deleteProperty);
 
-router.delete('/status/:id', authorize('properties', 'update'), propertyController.propertyStatus);
+router.patch('/status/:id', authorize('properties', 'update'), propertyController.propertyStatus);
 
 // Property media routes (nested)
 router.use('/:propertyId/media', propertyMediaRouter);

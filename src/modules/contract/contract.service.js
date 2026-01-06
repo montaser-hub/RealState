@@ -17,7 +17,7 @@ export const getContract = async (id) => {
 };
 
 export const getContracts = async (queryParams) => {
-  const searchableFields = ['status', 'amount', 'currency', 'contractNumber', 'ownerName', 'clientName'];
+  const searchableFields = ['status', 'amount', 'currency', 'contractNumber'];
   return await getAllDocuments(contractRepo, queryParams, searchableFields);
 };
 

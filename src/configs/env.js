@@ -35,11 +35,12 @@ export const config = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3001/api/v1/google/connect/callback',
     scopes: [process.env.GOOGLE_SCOPES || 'https://www.googleapis.com/auth/calendar'],
+    encryptionKey: process.env.ENCRYPTION_KEY,
   },
   // Resend Email Configuration
   resend: {
     apiKey: process.env.RESEND_API_KEY || process.env.RESNED_API_KEY, // Support both correct and typo
-    fromEmail: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'no-reply@spropertiess.com',
     fromName: process.env.RESEND_FROM_NAME || 'RealState Management',
   },
 };
